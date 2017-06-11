@@ -1,0 +1,1744 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fmxmlsnippet type="FMObjectList">
+  <BaseTable name="RC2FM_ATTACHMENTS">
+    <Field id="1" dataType="Number" fieldType="Normal" name="_kan_False">
+      <Comment/>
+      <AutoEnter allowEditing="False" value="ConstantData" constant="True" furigana="False" lookup="False" calculation="False">
+        <ConstantData>0</ConstantData>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="2" dataType="Number" fieldType="Normal" name="_kan_True">
+      <Comment/>
+      <AutoEnter allowEditing="False" value="ConstantData" constant="True" furigana="False" lookup="False" calculation="False">
+        <ConstantData>1</ConstantData>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="3" dataType="Number" fieldType="Normal" name="_kpn_attachment_id">
+      <Comment/>
+      <AutoEnter allowEditing="False" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_ATTACHMENTS">/**
+ * Converts the results of the Get(UUID) function into a Decimal for better indexing
+ *
+ *
+ * @author Todd Geist, todd@geistinteractive.com
+ * @created 10/19/2012
+ */
+
+
+
+Let(
+
+[
+
+h = "0123456789ABCDEF";
+
+ t =    Filter( Get(UUID); h);
+
+
+
+n =  
+
+( Position( h; Middle( t; 1; 1) ;1;1)-1) * ( 16 ^ 31 ) + 
+( Position( h; Middle( t; 2; 1) ;1;1)-1) * ( 16 ^ 30 ) + 
+( Position( h; Middle( t; 3; 1) ;1;1)-1) * ( 16 ^ 29 ) +
+( Position( h; Middle( t; 4; 1) ;1;1)-1) * ( 16 ^ 28 ) +
+( Position( h; Middle( t; 5; 1) ;1;1)-1) * ( 16 ^ 27 ) +
+( Position( h; Middle( t; 6; 1) ;1;1)-1) * ( 16 ^ 26 ) +
+( Position( h; Middle( t; 7; 1) ;1;1)-1) * ( 16 ^ 25 ) +
+( Position( h; Middle( t; 8; 1) ;1;1)-1) * ( 16 ^ 24 ) +
+( Position( h; Middle( t; 9; 1) ;1;1)-1) * ( 16 ^ 23 ) +
+( Position( h; Middle( t; 10; 1) ;1;1)-1) * ( 16 ^ 22 ) +
+( Position( h; Middle( t; 11; 1) ;1;1)-1) * ( 16 ^ 21 ) +
+( Position( h; Middle( t; 12; 1) ;1;1)-1) * ( 16 ^ 20 ) +
+( Position( h; Middle( t; 13; 1) ;1;1)-1) * ( 16 ^ 19 ) +
+( Position( h; Middle( t; 14; 1) ;1;1)-1) * ( 16 ^ 18 ) +
+( Position( h; Middle( t; 15; 1) ;1;1)-1) * ( 16 ^ 17 ) +
+( Position( h; Middle( t; 16; 1) ;1;1)-1) * ( 16 ^ 16 ) +
+( Position( h; Middle( t; 17; 1) ;1;1)-1) * ( 16 ^ 15 ) +
+( Position( h; Middle( t; 18; 1) ;1;1)-1) * ( 16 ^ 14 ) +
+( Position( h; Middle( t; 19; 1) ;1;1)-1) * ( 16 ^ 13 ) +
+( Position( h; Middle( t; 20; 1) ;1;1)-1) * ( 16 ^ 12 ) +
+( Position( h; Middle( t; 21; 1) ;1;1)-1) * ( 16 ^ 11 ) +
+( Position( h; Middle( t; 22; 1) ;1;1)-1) * ( 16 ^ 10 ) +
+( Position( h; Middle( t; 23; 1) ;1;1)-1) * ( 16 ^ 9 ) +
+( Position( h; Middle( t; 24; 1) ;1;1)-1) * ( 16 ^ 8 ) +
+( Position( h; Middle( t; 25; 1) ;1;1)-1) * ( 16 ^ 7 ) +
+( Position( h; Middle( t; 26; 1) ;1;1)-1) * ( 16 ^ 6 ) +
+( Position( h; Middle( t; 27; 1) ;1;1)-1) * ( 16 ^ 5 ) +
+( Position( h; Middle( t; 28; 1) ;1;1)-1) * ( 16 ^ 4 ) +
+( Position( h; Middle( t; 29; 1) ;1;1)-1) * ( 16 ^ 3 ) +
+( Position( h; Middle( t; 30; 1) ;1;1)-1) * ( 16 ^ 2 ) +
+( Position( h; Middle( t; 31; 1) ;1;1)-1) * ( 16 ^ 1 ) +
+( Position( h; Middle( t; 32; 1) ;1;1)-1)
+
+
+
+];
+
+n
+
+
+
+)</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="4" dataType="TimeStamp" fieldType="Normal" name="recordCreatedAt">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="CreationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="5" dataType="Text" fieldType="Normal" name="recordCreatedBy">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="CreationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="6" dataType="Number" fieldType="Calculated" name="recordFoundCount">
+      <Calculation table="RC2FM_ATTACHMENTS">Get ( FoundCount )</Calculation>
+      <Comment/>
+      <AutoEnter alwaysEvaluate="False"/>
+      <Storage storeCalculationResults="False" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="7" dataType="TimeStamp" fieldType="Normal" name="recordModifiedAt">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="ModificationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="8" dataType="Text" fieldType="Normal" name="recordModifiedBy">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="ModificationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="9" dataType="Number" fieldType="Normal" name="_kfn_log_id">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="10" dataType="Text" fieldType="Normal" name="rawBase64">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="False" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="11" dataType="Binary" fieldType="Normal" name="binary">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="12" dataType="Text" fieldType="Normal" name="ContentType">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+  </BaseTable>
+  <BaseTable name="RC2FM_FAX_COVERS">
+    <Field id="1" dataType="Number" fieldType="Normal" name="_kan_False">
+      <Comment/>
+      <AutoEnter allowEditing="False" value="ConstantData" constant="True" furigana="False" lookup="False" calculation="False">
+        <ConstantData>0</ConstantData>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="2" dataType="Number" fieldType="Normal" name="_kan_True">
+      <Comment/>
+      <AutoEnter allowEditing="False" value="ConstantData" constant="True" furigana="False" lookup="False" calculation="False">
+        <ConstantData>1</ConstantData>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="3" dataType="Number" fieldType="Normal" name="_kp_FaxCover_ID">
+      <Comment/>
+      <AutoEnter allowEditing="False" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_FAX_COVERS">/**
+ * Converts the results of the Get(UUID) function into a Decimal for better indexing
+ *
+ *
+ * @author Todd Geist, todd@geistinteractive.com
+ * @created 10/19/2012
+ */
+
+
+
+Let(
+
+[
+
+h = "0123456789ABCDEF";
+
+ t =    Filter( Get(UUID); h);
+
+
+
+n =  
+
+( Position( h; Middle( t; 1; 1) ;1;1)-1) * ( 16 ^ 31 ) + 
+( Position( h; Middle( t; 2; 1) ;1;1)-1) * ( 16 ^ 30 ) + 
+( Position( h; Middle( t; 3; 1) ;1;1)-1) * ( 16 ^ 29 ) +
+( Position( h; Middle( t; 4; 1) ;1;1)-1) * ( 16 ^ 28 ) +
+( Position( h; Middle( t; 5; 1) ;1;1)-1) * ( 16 ^ 27 ) +
+( Position( h; Middle( t; 6; 1) ;1;1)-1) * ( 16 ^ 26 ) +
+( Position( h; Middle( t; 7; 1) ;1;1)-1) * ( 16 ^ 25 ) +
+( Position( h; Middle( t; 8; 1) ;1;1)-1) * ( 16 ^ 24 ) +
+( Position( h; Middle( t; 9; 1) ;1;1)-1) * ( 16 ^ 23 ) +
+( Position( h; Middle( t; 10; 1) ;1;1)-1) * ( 16 ^ 22 ) +
+( Position( h; Middle( t; 11; 1) ;1;1)-1) * ( 16 ^ 21 ) +
+( Position( h; Middle( t; 12; 1) ;1;1)-1) * ( 16 ^ 20 ) +
+( Position( h; Middle( t; 13; 1) ;1;1)-1) * ( 16 ^ 19 ) +
+( Position( h; Middle( t; 14; 1) ;1;1)-1) * ( 16 ^ 18 ) +
+( Position( h; Middle( t; 15; 1) ;1;1)-1) * ( 16 ^ 17 ) +
+( Position( h; Middle( t; 16; 1) ;1;1)-1) * ( 16 ^ 16 ) +
+( Position( h; Middle( t; 17; 1) ;1;1)-1) * ( 16 ^ 15 ) +
+( Position( h; Middle( t; 18; 1) ;1;1)-1) * ( 16 ^ 14 ) +
+( Position( h; Middle( t; 19; 1) ;1;1)-1) * ( 16 ^ 13 ) +
+( Position( h; Middle( t; 20; 1) ;1;1)-1) * ( 16 ^ 12 ) +
+( Position( h; Middle( t; 21; 1) ;1;1)-1) * ( 16 ^ 11 ) +
+( Position( h; Middle( t; 22; 1) ;1;1)-1) * ( 16 ^ 10 ) +
+( Position( h; Middle( t; 23; 1) ;1;1)-1) * ( 16 ^ 9 ) +
+( Position( h; Middle( t; 24; 1) ;1;1)-1) * ( 16 ^ 8 ) +
+( Position( h; Middle( t; 25; 1) ;1;1)-1) * ( 16 ^ 7 ) +
+( Position( h; Middle( t; 26; 1) ;1;1)-1) * ( 16 ^ 6 ) +
+( Position( h; Middle( t; 27; 1) ;1;1)-1) * ( 16 ^ 5 ) +
+( Position( h; Middle( t; 28; 1) ;1;1)-1) * ( 16 ^ 4 ) +
+( Position( h; Middle( t; 29; 1) ;1;1)-1) * ( 16 ^ 3 ) +
+( Position( h; Middle( t; 30; 1) ;1;1)-1) * ( 16 ^ 2 ) +
+( Position( h; Middle( t; 31; 1) ;1;1)-1) * ( 16 ^ 1 ) +
+( Position( h; Middle( t; 32; 1) ;1;1)-1)
+
+
+
+];
+
+n
+
+
+
+)</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="4" dataType="TimeStamp" fieldType="Normal" name="recordCreatedAt">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="CreationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="5" dataType="Text" fieldType="Normal" name="recordCreatedBy">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="CreationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="6" dataType="TimeStamp" fieldType="Normal" name="recordModifiedAt">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="ModificationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="7" dataType="Text" fieldType="Normal" name="recordModifiedBy">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="ModificationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="8" dataType="Number" fieldType="Normal" name="Cover_Index">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="9" dataType="Text" fieldType="Normal" name="Cover_Description">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+  </BaseTable>
+  <BaseTable name="RC2FM_GLOBALS">
+    <Field id="1" dataType="TimeStamp" fieldType="Normal" name="recordCreatedAt">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="CreationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="2" dataType="Text" fieldType="Normal" name="recordCreatedBy">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="CreationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="3" dataType="TimeStamp" fieldType="Normal" name="recordModifiedAt">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="ModificationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="4" dataType="Text" fieldType="Normal" name="recordModifiedBy">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="ModificationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="5" dataType="Number" fieldType="Normal" name="_kan_False">
+      <Comment/>
+      <AutoEnter allowEditing="False" value="ConstantData" constant="True" furigana="False" lookup="False" calculation="False">
+        <ConstantData>0</ConstantData>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="6" dataType="Number" fieldType="Normal" name="_kan_True">
+      <Comment/>
+      <AutoEnter allowEditing="False" value="ConstantData" constant="True" furigana="False" lookup="False" calculation="False">
+        <ConstantData>1</ConstantData>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="7" dataType="Number" fieldType="Normal" name="RC_User_ExtNumber">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="8" dataType="Text" fieldType="Normal" name="RC_User_Name">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="9" dataType="Text" fieldType="Normal" name="RC_User_Password">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="10" dataType="Text" fieldType="Normal" name="SMS_API_Call">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="11" dataType="Text" fieldType="Normal" name="SMS_Input_Field">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="14" dataType="Text" fieldType="Normal" name="API_Response__Token_Status">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="15" dataType="Text" fieldType="Normal" name="API_Response__Auth">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="16" dataType="Text" fieldType="Normal" name="API_Response__RC_Reply">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="17" dataType="Binary" fieldType="Normal" name="FaxOut_Utility_Container">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="18" dataType="Text" fieldType="Normal" name="API_Functions_Utility_field">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="20" dataType="Text" fieldType="Normal" name="RingOut_CallerID_Selected">
+      <Comment>DEPRECATED</Comment>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="21" dataType="Text" fieldType="Normal" name="RingOut_From">
+      <Comment/>
+      <AutoEnter allowEditing="True" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_GLOBALS">If ( IsEmpty ( Self ) ; RingOut_CallerID_Selected ; Self )</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="22" dataType="Text" fieldType="Normal" name="RingOut_To">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="23" dataType="Text" fieldType="Normal" name="API_Response__RC_download_log">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="25" dataType="Text" fieldType="Normal" name="SMS_ToPhone">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="26" dataType="Text" fieldType="Normal" name="FaxOut_To">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="27" dataType="Text" fieldType="Normal" name="FaxOut_CoverPage_Selected">
+      <Comment/>
+      <AutoEnter allowEditing="True" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_GLOBALS">If ( IsEmpty ( Self ) ; "0" ; Self )</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+    <Field id="28" dataType="Text" fieldType="Normal" name="FaxOut_Cover_Message">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage indexLanguage="English" global="True" maxRepetition="1"/>
+    </Field>
+  </BaseTable>
+  <BaseTable name="RC2FM_LOGS">
+    <Field id="1" dataType="Number" fieldType="Normal" name="_kan_False">
+      <Comment/>
+      <AutoEnter allowEditing="False" value="ConstantData" constant="True" furigana="False" lookup="False" calculation="False">
+        <ConstantData>0</ConstantData>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="2" dataType="Number" fieldType="Normal" name="_kan_True">
+      <Comment/>
+      <AutoEnter allowEditing="False" value="ConstantData" constant="True" furigana="False" lookup="False" calculation="False">
+        <ConstantData>1</ConstantData>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="3" dataType="Number" fieldType="Normal" name="_kpn_log_id">
+      <Comment/>
+      <AutoEnter allowEditing="False" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_LOGS">/**
+ * Converts the results of the Get(UUID) function into a Decimal for better indexing
+ *
+ *
+ * @author Todd Geist, todd@geistinteractive.com
+ * @created 10/19/2012
+ */
+
+
+
+Let(
+
+[
+
+h = "0123456789ABCDEF";
+
+ t =    Filter( Get(UUID); h);
+
+
+
+n =  
+
+( Position( h; Middle( t; 1; 1) ;1;1)-1) * ( 16 ^ 31 ) + 
+( Position( h; Middle( t; 2; 1) ;1;1)-1) * ( 16 ^ 30 ) + 
+( Position( h; Middle( t; 3; 1) ;1;1)-1) * ( 16 ^ 29 ) +
+( Position( h; Middle( t; 4; 1) ;1;1)-1) * ( 16 ^ 28 ) +
+( Position( h; Middle( t; 5; 1) ;1;1)-1) * ( 16 ^ 27 ) +
+( Position( h; Middle( t; 6; 1) ;1;1)-1) * ( 16 ^ 26 ) +
+( Position( h; Middle( t; 7; 1) ;1;1)-1) * ( 16 ^ 25 ) +
+( Position( h; Middle( t; 8; 1) ;1;1)-1) * ( 16 ^ 24 ) +
+( Position( h; Middle( t; 9; 1) ;1;1)-1) * ( 16 ^ 23 ) +
+( Position( h; Middle( t; 10; 1) ;1;1)-1) * ( 16 ^ 22 ) +
+( Position( h; Middle( t; 11; 1) ;1;1)-1) * ( 16 ^ 21 ) +
+( Position( h; Middle( t; 12; 1) ;1;1)-1) * ( 16 ^ 20 ) +
+( Position( h; Middle( t; 13; 1) ;1;1)-1) * ( 16 ^ 19 ) +
+( Position( h; Middle( t; 14; 1) ;1;1)-1) * ( 16 ^ 18 ) +
+( Position( h; Middle( t; 15; 1) ;1;1)-1) * ( 16 ^ 17 ) +
+( Position( h; Middle( t; 16; 1) ;1;1)-1) * ( 16 ^ 16 ) +
+( Position( h; Middle( t; 17; 1) ;1;1)-1) * ( 16 ^ 15 ) +
+( Position( h; Middle( t; 18; 1) ;1;1)-1) * ( 16 ^ 14 ) +
+( Position( h; Middle( t; 19; 1) ;1;1)-1) * ( 16 ^ 13 ) +
+( Position( h; Middle( t; 20; 1) ;1;1)-1) * ( 16 ^ 12 ) +
+( Position( h; Middle( t; 21; 1) ;1;1)-1) * ( 16 ^ 11 ) +
+( Position( h; Middle( t; 22; 1) ;1;1)-1) * ( 16 ^ 10 ) +
+( Position( h; Middle( t; 23; 1) ;1;1)-1) * ( 16 ^ 9 ) +
+( Position( h; Middle( t; 24; 1) ;1;1)-1) * ( 16 ^ 8 ) +
+( Position( h; Middle( t; 25; 1) ;1;1)-1) * ( 16 ^ 7 ) +
+( Position( h; Middle( t; 26; 1) ;1;1)-1) * ( 16 ^ 6 ) +
+( Position( h; Middle( t; 27; 1) ;1;1)-1) * ( 16 ^ 5 ) +
+( Position( h; Middle( t; 28; 1) ;1;1)-1) * ( 16 ^ 4 ) +
+( Position( h; Middle( t; 29; 1) ;1;1)-1) * ( 16 ^ 3 ) +
+( Position( h; Middle( t; 30; 1) ;1;1)-1) * ( 16 ^ 2 ) +
+( Position( h; Middle( t; 31; 1) ;1;1)-1) * ( 16 ^ 1 ) +
+( Position( h; Middle( t; 32; 1) ;1;1)-1)
+
+
+
+];
+
+n
+
+
+
+)</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="4" dataType="TimeStamp" fieldType="Normal" name="recordCreatedAt">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="CreationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="5" dataType="Text" fieldType="Normal" name="recordCreatedBy">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="CreationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="6" dataType="Number" fieldType="Calculated" name="recordFoundCount">
+      <Calculation table="RC2FM_LOGS">Get ( FoundCount )</Calculation>
+      <Comment/>
+      <AutoEnter alwaysEvaluate="False"/>
+      <Storage storeCalculationResults="False" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="7" dataType="TimeStamp" fieldType="Normal" name="recordModifiedAt">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="ModificationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="8" dataType="Text" fieldType="Normal" name="recordModifiedBy">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="ModificationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="9" dataType="Text" fieldType="Normal" name="id">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="10" dataType="Text" fieldType="Normal" name="action">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="11" dataType="Text" fieldType="Normal" name="attachmentmessageStatus">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="12" dataType="Text" fieldType="Normal" name="attachmenturl">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="13" dataType="Text" fieldType="Normal" name="attachmentvmDuration">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="14" dataType="Text" fieldType="Normal" name="creationTime">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="15" dataType="Text" fieldType="Normal" name="direction">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="16" dataType="Number" fieldType="Normal" name="duration">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="17" dataType="Text" fieldType="Normal" name="fromlocation">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="18" dataType="Text" fieldType="Normal" name="fromname">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="19" dataType="Text" fieldType="Normal" name="fromphoneNumber">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="20" dataType="Text" fieldType="Normal" name="lastModifiedTime">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="21" dataType="Text" fieldType="Normal" name="priority">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="22" dataType="Text" fieldType="Normal" name="readStatus">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="23" dataType="Text" fieldType="Normal" name="result">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="24" dataType="Text" fieldType="Normal" name="startTime">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="25" dataType="Text" fieldType="Normal" name="tolocation">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="26" dataType="Text" fieldType="Normal" name="toname">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="27" dataType="Text" fieldType="Normal" name="tophoneNumber">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="28" dataType="Text" fieldType="Normal" name="type">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="29" dataType="Text" fieldType="Normal" name="coverIndex">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="30" dataType="Text" fieldType="Normal" name="coverPageText">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="31" dataType="Number" fieldType="Normal" name="faxPageCount">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="32" dataType="Text" fieldType="Normal" name="faxResolution">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="33" dataType="Text" fieldType="Normal" name="subject">
+      <Comment/>
+      <AutoEnter allowEditing="True" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_LOGS">Substitute ( Self ; "&lt;CR&gt;" ; ¶ )</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="34" dataType="Text" fieldType="Normal" name="messageStatus">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="35" dataType="Number" fieldType="Normal" name="conversationid">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="36" dataType="Text" fieldType="Normal" name="ContentType">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="37" dataType="Text" fieldType="Normal" name="sessionId">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="38" dataType="Text" fieldType="Normal" name="recordingurl">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="39" dataType="Text" fieldType="Normal" name="recordingtype">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="40" dataType="Text" fieldType="Normal" name="recordingid">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="41" dataType="Text" fieldType="Calculated" name="_kact_to_from_conversation_thread">
+      <Calculation table="RC2FM_LOGS">fromphoneNumber &amp; ¶ &amp; tophoneNumber</Calculation>
+      <Comment/>
+      <AutoEnter alwaysEvaluate="False"/>
+      <Storage storeCalculationResults="True" autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="43" dataType="Number" fieldType="Normal" name="_kan_isMessage">
+      <Comment>Flags a record as either a Fax or a Voicemial</Comment>
+      <AutoEnter allowEditing="False" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_LOGS">If ( type = "VoiceMail" or type = "Fax" ; True ; False )</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="44" dataType="Number" fieldType="Normal" name="_kan_isRecording">
+      <Comment>Flags a record as a call recording</Comment>
+      <AutoEnter allowEditing="False" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_LOGS">If ( type = "Voice" ; True ; False )</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="45" dataType="Number" fieldType="Normal" name="_kan_isSMS">
+      <Comment>Flags a record as an SMS</Comment>
+      <AutoEnter allowEditing="False" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_LOGS">If ( type = "SMS" ; True ; False )</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="46" dataType="Number" fieldType="Normal" name="_kan_RC_extension_id">
+      <Comment/>
+      <AutoEnter allowEditing="True" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_LOGS">$$extension</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="47" dataType="Text" fieldType="Calculated" name="sms_message">
+      <Calculation table="RC2FM_LOGS">// s:19:"http://360works.com"; 
+// n:42;
+
+If ( type = "SMS" ; 
+
+	Let (  [ 
+    		trimmed = Left ( subject ; Length ( subject ) - 1 ) ; // remove semicolon
+    		p1 = Position ( trimmed ; ":" ; 1 ; 1 ) ; // first colon, should always = 2
+    		p2 = Position ( trimmed ; ":" ; 1 ; 2) ; // second colon, only for string types
+   		 type = Left ( trimmed ; p1 -1 ) ;
+    		v2 = Middle ( trimmed ; p1 + 1; p2-p1);
+    		v3 = Middle ( trimmed ; p2 + 1 ; Length(trimmed) - p2 )
+	] ;
+    		Case ( 
+       		IsEmpty( subject ) ; // empty input
+           	 "" ;
+        		type = "N" ;  // null
+           	 "" ;
+        		type = "b" ; // boolean
+			GetAsBoolean( v2 ) ;
+        		type = "i" ; // integer
+            	GetAsNumber( v2 ) ;
+        		type = "s" ;
+           	 Middle ( v3 ; 2 ; v2 ) ;
+        		type = "a" ;
+           	 subject ; // not yet supported
+        		type = "O" ;
+            	subject ; // not yet supported
+        		"Unknown serialize format in " &amp; subject
+
+   		 ) // end Case
+
+	) // end Let
+
+; ""
+
+) //end if</Calculation>
+      <Comment/>
+      <AutoEnter alwaysEvaluate="False"/>
+      <Storage storeCalculationResults="True" index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="49" dataType="Text" fieldType="Calculated" name="zz_faxpagecount_ct">
+      <Calculation table="RC2FM_LOGS">If ( type = "Fax" ; 
+
+	Case ( 
+
+		faxPageCount &gt; 1 and not PatternCount ( messageStatus ; "Failed" ); "( " &amp; faxPageCount &amp; " pages )" ; 
+
+		faxPageCount = 1 and not PatternCount ( messageStatus ; "Failed" ); "( " &amp; faxPageCount &amp; " page )" ;
+
+		"" 
+
+	) //end Case
+
+) //end If</Calculation>
+      <Comment/>
+      <AutoEnter alwaysEvaluate="False"/>
+      <Storage storeCalculationResults="True" autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="50" dataType="TimeStamp" fieldType="Calculated" name="zz_timeModified_cm">
+      <Calculation table="RC2FM_LOGS">Let([
+
+//	_TimeStamp = "2013-10-04T12:13:15";
+	
+	_year = Left (lastModifiedTime ; 4 );
+	_month = Middle ( lastModifiedTime ; 6 ; 2 );
+	_day = Middle ( lastModifiedTime ; 9 ; 2 );
+	_hour = Middle ( lastModifiedTime ; 12 ; 2 );
+	_min = Middle ( lastModifiedTime ; 15 ; 2 );
+	_sec = Middle ( lastModifiedTime ; 18 ; 2 )
+
+
+];
+
+
+Date ( _month ; _day ; _year ) &amp; " " &amp; Time ( _hour ; _min ; _sec )
+
+)
+
+/* 
+--------------------------
+La Source multimédia
+12/2013
+
+	UnixTimeStamp2FMTimeStamp ( _TimeStamp )
+
+Returns a FileMaker date from a unix timestamp
+
+_TimeStamp: unix timestamp
+
+--------------------------
+*/</Calculation>
+      <Comment/>
+      <AutoEnter alwaysEvaluate="False"/>
+      <Storage storeCalculationResults="True" autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="51" dataType="Text" fieldType="Calculated" name="zz_recordingduration_ct">
+      <Calculation table="RC2FM_LOGS">If ( not IsEmpty ( duration ) ; 
+
+	If ( 
+
+		duration ≥ 60 ; "( " &amp; Round ( duration /60 ; 1 ) &amp; " minutes )" ; 
+
+		"( " &amp; duration &amp; " seconds )" 
+
+	 ) //end If
+
+ ) //end if</Calculation>
+      <Comment/>
+      <AutoEnter alwaysEvaluate="False"/>
+      <Storage storeCalculationResults="True" autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="52" dataType="TimeStamp" fieldType="Calculated" name="zz_timeCreated_cm">
+      <Calculation table="RC2FM_LOGS">Let([
+
+//	_TimeStamp = "2013-10-04T12:13:15";
+	
+	_year = Left ( creationTime ; 4 );
+	_month = Middle ( creationTime ; 6 ; 2 );
+	_day = Middle ( creationTime ; 9 ; 2 );
+	_hour = Middle ( creationTime ; 12 ; 2 );
+	_min = Middle ( creationTime ; 15 ; 2 );
+	_sec = Middle ( creationTime ; 18 ; 2 )
+
+
+];
+
+
+Date ( _month ; _day ; _year ) &amp; " " &amp; Time ( _hour ; _min ; _sec )
+
+)
+
+/* 
+--------------------------
+La Source multimédia
+12/2013
+
+	UnixTimeStamp2FMTimeStamp ( _TimeStamp )
+
+Returns a FileMaker date from a unix timestamp
+
+_TimeStamp: unix timestamp
+
+--------------------------
+*/</Calculation>
+      <Comment/>
+      <AutoEnter alwaysEvaluate="False"/>
+      <Storage storeCalculationResults="True" autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="53" dataType="Text" fieldType="Normal" name="attachment_id">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="54" dataType="Text" fieldType="Normal" name="conversation">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+  </BaseTable>
+  <BaseTable name="RC2FM_SETTINGS">
+    <Field id="6" dataType="Text" fieldType="Normal" name="RC_HtmlAjaxTemplate">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="16" dataType="Text" fieldType="Normal" name="RC2FM_BaseURL">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="22" dataType="TimeStamp" fieldType="Normal" name="recordCreatedAt">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="CreationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="23" dataType="Text" fieldType="Normal" name="recordCreatedBy">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="CreationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="24" dataType="TimeStamp" fieldType="Normal" name="recordModifiedAt">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="ModificationTimeStamp" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="25" dataType="Text" fieldType="Normal" name="recordModifiedBy">
+      <Comment/>
+      <AutoEnter allowEditing="True" value="ModificationAccountName" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="26" dataType="Number" fieldType="Normal" name="_kan_False">
+      <Comment/>
+      <AutoEnter allowEditing="False" value="ConstantData" constant="True" furigana="False" lookup="False" calculation="False">
+        <ConstantData>0</ConstantData>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="27" dataType="Number" fieldType="Normal" name="_kan_True">
+      <Comment/>
+      <AutoEnter allowEditing="False" value="ConstantData" constant="True" furigana="False" lookup="False" calculation="False">
+        <ConstantData>1</ConstantData>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="28" dataType="Number" fieldType="Normal" name="_kp_Settings_ID">
+      <Comment/>
+      <AutoEnter allowEditing="False" overwriteExistingValue="True" alwaysEvaluate="False" constant="False" furigana="False" lookup="False" calculation="True">
+        <ConstantData/>
+        <Calculation table="RC2FM_SETTINGS">/**
+ * Converts the results of the Get(UUID) function into a Decimal for better indexing
+ *
+ *
+ * @author Todd Geist, todd@geistinteractive.com
+ * @created 10/19/2012
+ */
+
+
+
+Let(
+
+[
+
+h = "0123456789ABCDEF";
+
+ t =    Filter( Get(UUID); h);
+
+
+
+n =  
+
+( Position( h; Middle( t; 1; 1) ;1;1)-1) * ( 16 ^ 31 ) + 
+( Position( h; Middle( t; 2; 1) ;1;1)-1) * ( 16 ^ 30 ) + 
+( Position( h; Middle( t; 3; 1) ;1;1)-1) * ( 16 ^ 29 ) +
+( Position( h; Middle( t; 4; 1) ;1;1)-1) * ( 16 ^ 28 ) +
+( Position( h; Middle( t; 5; 1) ;1;1)-1) * ( 16 ^ 27 ) +
+( Position( h; Middle( t; 6; 1) ;1;1)-1) * ( 16 ^ 26 ) +
+( Position( h; Middle( t; 7; 1) ;1;1)-1) * ( 16 ^ 25 ) +
+( Position( h; Middle( t; 8; 1) ;1;1)-1) * ( 16 ^ 24 ) +
+( Position( h; Middle( t; 9; 1) ;1;1)-1) * ( 16 ^ 23 ) +
+( Position( h; Middle( t; 10; 1) ;1;1)-1) * ( 16 ^ 22 ) +
+( Position( h; Middle( t; 11; 1) ;1;1)-1) * ( 16 ^ 21 ) +
+( Position( h; Middle( t; 12; 1) ;1;1)-1) * ( 16 ^ 20 ) +
+( Position( h; Middle( t; 13; 1) ;1;1)-1) * ( 16 ^ 19 ) +
+( Position( h; Middle( t; 14; 1) ;1;1)-1) * ( 16 ^ 18 ) +
+( Position( h; Middle( t; 15; 1) ;1;1)-1) * ( 16 ^ 17 ) +
+( Position( h; Middle( t; 16; 1) ;1;1)-1) * ( 16 ^ 16 ) +
+( Position( h; Middle( t; 17; 1) ;1;1)-1) * ( 16 ^ 15 ) +
+( Position( h; Middle( t; 18; 1) ;1;1)-1) * ( 16 ^ 14 ) +
+( Position( h; Middle( t; 19; 1) ;1;1)-1) * ( 16 ^ 13 ) +
+( Position( h; Middle( t; 20; 1) ;1;1)-1) * ( 16 ^ 12 ) +
+( Position( h; Middle( t; 21; 1) ;1;1)-1) * ( 16 ^ 11 ) +
+( Position( h; Middle( t; 22; 1) ;1;1)-1) * ( 16 ^ 10 ) +
+( Position( h; Middle( t; 23; 1) ;1;1)-1) * ( 16 ^ 9 ) +
+( Position( h; Middle( t; 24; 1) ;1;1)-1) * ( 16 ^ 8 ) +
+( Position( h; Middle( t; 25; 1) ;1;1)-1) * ( 16 ^ 7 ) +
+( Position( h; Middle( t; 26; 1) ;1;1)-1) * ( 16 ^ 6 ) +
+( Position( h; Middle( t; 27; 1) ;1;1)-1) * ( 16 ^ 5 ) +
+( Position( h; Middle( t; 28; 1) ;1;1)-1) * ( 16 ^ 4 ) +
+( Position( h; Middle( t; 29; 1) ;1;1)-1) * ( 16 ^ 3 ) +
+( Position( h; Middle( t; 30; 1) ;1;1)-1) * ( 16 ^ 2 ) +
+( Position( h; Middle( t; 31; 1) ;1;1)-1) * ( 16 ^ 1 ) +
+( Position( h; Middle( t; 32; 1) ;1;1)-1)
+
+
+
+];
+
+n
+
+
+
+)</Calculation>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="29" dataType="Binary" fieldType="Normal" name="Logo_RC">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="30" dataType="Binary" fieldType="Normal" name="Logo_RC2FM">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage global="False" maxRepetition="1"/>
+    </Field>
+  </BaseTable>
+</fmxmlsnippet>
