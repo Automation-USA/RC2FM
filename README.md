@@ -1,4 +1,4 @@
-# RC2FM
+# RC2FM Connector
 FileMaker source code for RC2FM Connector as distributed by Automation USA, LLC (http://www.automationusa.net)
 
 Includes all tables and scripts required for integrating RingCentral with FileMaker using our authorized RingCentral app (https://t.co/XzKvvUs3A9).
