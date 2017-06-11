@@ -14,5 +14,7 @@ or
 For Windows (http://www.myfmbutler.com/en/products/clip-manager-express-for-windows/3)
 
 For more information on RC2FM Connector, visit our landing page at http://www.rc2fm.com 
+
 or
+
 Read the Docs at http://www.rc2fm.com/docs
