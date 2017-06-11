@@ -861,7 +861,7 @@ n
         <Existing value="False"/>
         <StrictValidation value="False"/>
       </Validation>
-      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
     </Field>
     <Field id="8" dataType="Text" fieldType="Normal" name="recordModifiedBy">
       <Comment/>
@@ -1082,7 +1082,7 @@ n
         <Existing value="False"/>
         <StrictValidation value="False"/>
       </Validation>
-      <Storage autoIndex="True" index="Minimal" indexLanguage="English" global="False" maxRepetition="1"/>
+      <Storage index="All" indexLanguage="English" global="False" maxRepetition="1"/>
     </Field>
     <Field id="25" dataType="Text" fieldType="Normal" name="tolocation">
       <Comment/>
@@ -1519,6 +1519,32 @@ _TimeStamp: unix timestamp
       <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
     </Field>
     <Field id="54" dataType="Text" fieldType="Normal" name="conversation">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="55" dataType="Text" fieldType="Normal" name="fromExtensionNumber">
+      <Comment/>
+      <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
+        <ConstantData/>
+      </AutoEnter>
+      <Validation message="False" maxLength="False" valuelist="False" calculation="False" alwaysValidateCalculation="False" type="OnlyDuringDataEntry">
+        <NotEmpty value="False"/>
+        <Unique value="False"/>
+        <Existing value="False"/>
+        <StrictValidation value="False"/>
+      </Validation>
+      <Storage autoIndex="True" index="None" indexLanguage="English" global="False" maxRepetition="1"/>
+    </Field>
+    <Field id="56" dataType="Text" fieldType="Normal" name="toExtensionNumber">
       <Comment/>
       <AutoEnter allowEditing="True" constant="False" furigana="False" lookup="False" calculation="False">
         <ConstantData/>
