@@ -1,0 +1,4441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fmxmlsnippet type="FMObjectList">
+  <Group groupCollapsed="False" includeInMenu="False" id="83" name="RC2FM Session Control">
+    <Script includeInMenu="False" runFullAccess="False" id="131" name="RC2FM__Config">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Name:
+RC2FM__Config
+
+History:
+Created by Automation USA - Julio Toledo
+Last Modified: 7-3-2016
+
+Purpose:
+Initializes global variables that specify dynamic paths to fields, layouts, and table occurrences required by RC2FM
+
+Parameters:
+None
+
+Important Notes:
+We've made every effort to make the RC2FM integration as dyanmic and easily configurable as possible so it can be easily transferred to any FileMaker solution. However there are some script steps such as "Insert from URL" which require hard coded paths. Be sure to review all scripts when pasting/importing into your solution.
+</Text>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Table Occurrence Names</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>//stores the default table occurrence name for attachments  (where call recordings, faxes, voicemail binaries are stored) 
+//specify table occurrence name here
+
+"RC2FM_ATTACHMENTS::"</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$attachmentsTO</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>//stores the default table occurrence for logs (where all user activity is stored) 
+//specify table occurrence name here
+
+"RC2FM_LOGS::"</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$messageLogTO</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Layout Names</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>//stores the default layout for the message attachments table occurrence  (where call recordings, faxes, voicemail binaries are stored) 
+//specify layout name here
+
+"RC2FM_ATTACHMENTS"</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$attachmentsLayout</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>//stores the default layout for the message log table occurrence (where log records for all user activity is stored) 
+//specify layout name here
+
+"ScriptUse__RC2FM__Logs"</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$messageLogLayout</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Field Names</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>//stores the caller IDs available to the RingCentral user currently signed in so they can be selected from a value list. 
+//Specify field name/path here
+
+"DEMO_USER_SESSIONS__user_session_id::RC_CallerID_Choices"</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$rc2fm_caller_id_storage</Name>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="78" name="RC2FM__Login">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Gather required environment parameters</Text>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Script id="82" name="RC2FM__Subscript_Build_Session_ID"/>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Compile authentication url</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/api/login.php?auth=" &amp; 
+Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name  ; "0123456789+" ) ) &amp; 
+"&amp;password=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_Password ) &amp; 
+If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) &amp; 
+$$rc2fm_session_id</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$Auth</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Submit Login</Text>
+      </Step>
+      <Step enable="True" id="160" name="Insert from URL">
+        <NoInteract state="True"/>
+        <DontEncodeURL state="False"/>
+        <SelectAll state="True"/>
+        <VerifySSLCertificates state="True"/>
+        <Calculation>$Auth</Calculation>
+        <Field table="RC2FM_GLOBALS" id="15" name="API_Response__Auth"/>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>unlock record</Text>
+      </Step>
+      <Step enable="True" id="17" name="Go to Field">
+        <SelectAll state="True"/>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>process api response</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>PatternCount ( RC2FM_GLOBALS::API_Response__Auth ; "success" )</Calculation>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>TrimAll ( RC2FM_GLOBALS::API_Response__Auth ; 1 ; 2 )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$loginResponse</Name>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Calculation>$loginResponse</Calculation>
+        <Script id="81" name="RC2FM__Utility__Parse_CalerIDs (rawJSON)"/>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Script id="186" name="RC2FM__Subscript_Store_CallerIDs"/>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="80" name="Refresh Window">
+        <Option state="False"/>
+        <FlushSQLData state="False"/>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="87" name="RC2FM__Logout">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Gather required environment parameters</Text>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Script id="82" name="RC2FM__Subscript_Build_Session_ID"/>
+      </Step>
+      <Step enable="False" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptResult )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$session_id</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Compile logout url</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/logout.php?auth=" &amp; 
+Base64Encode (  Filter ( RC2FM_GLOBALS::RC_User_Name  ; "0123456789+" ) ) &amp; 
+If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) &amp; 
+$$rc2fm_session_id</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$Logout</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Submit Logout request</Text>
+      </Step>
+      <Step enable="True" id="160" name="Insert from URL">
+        <NoInteract state="True"/>
+        <DontEncodeURL state="False"/>
+        <SelectAll state="True"/>
+        <VerifySSLCertificates state="True"/>
+        <Calculation>$Logout</Calculation>
+        <Field table="RC2FM_GLOBALS" id="15" name="API_Response__Auth"/>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>unlock record</Text>
+      </Step>
+      <Step enable="True" id="17" name="Go to Field">
+        <SelectAll state="True"/>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>process api response</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>PatternCount ( RC2FM_GLOBALS::API_Response__Auth ; "{\"success\":98,\"message\":\"You are sucessfully logged out.\"}" )</Calculation>
+      </Step>
+      <Step enable="False" id="68" name="If">
+        <Calculation>PatternCount ( GetField  ( GetFieldName ( RC2FM_GLOBALS::API_Response__Auth ) ) ;  "sucessfully logged out" )</Calculation>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>""</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$account</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>""</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$extension</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>""</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$MainCompanyNumber</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>""</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$CompanyFaxNumber</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>""</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$CompanyNumber</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>""</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$DirectNumber</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>""</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$extensionNumber</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>""</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$$admin</Name>
+      </Step>
+      <Step enable="False" id="70" name="End If"/>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Clean up</Text>
+      </Step>
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>""</Calculation>
+        <Field table="RC2FM_GLOBALS" id="20" name="RingOut_CallerID_Selected"/>
+      </Step>
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>""</Calculation>
+        <Field table="RC2FM_GLOBALS" id="17" name="FaxOut_Utility_Container"/>
+      </Step>
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>""</Calculation>
+        <Field table="DEMO_USER_SESSIONS__user_session_id" id="9" name="RC_CallerID_Choices"/>
+      </Step>
+      <Step enable="True" id="80" name="Refresh Window">
+        <Option state="False"/>
+        <FlushSQLData state="False"/>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="88" name="-"/>
+    <Script includeInMenu="False" runFullAccess="False" id="5" name="RC2FM__Check_Session_Status">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Assemble token status url</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/get_token.php?auth=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) &amp; 
+If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;=&amp;extension=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) &amp; "&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; 
+"&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; 
+"&amp;persistent_id=" &amp; Base64Encode ( Get ( PersistentID ) )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$token_status</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Submit token status request</Text>
+      </Step>
+      <Step enable="True" id="160" name="Insert from URL">
+        <NoInteract state="True"/>
+        <DontEncodeURL state="False"/>
+        <SelectAll state="True"/>
+        <VerifySSLCertificates state="True"/>
+        <Calculation>$token_status</Calculation>
+        <Field table="RC2FM_GLOBALS" id="14" name="API_Response__Token_Status"/>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>process api response</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>TrimAll ( RC2FM_GLOBALS::API_Response__Token_Status ; 1 ; 2 )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$response</Name>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( 
+
+	Substitute ( 
+
+		TrimAll ( $response ; 1 ; 3 ) ; 
+
+	¶ ; 
+
+	"" 
+
+	) //end Substitute
+ )</Calculation>
+      </Step>
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>""</Calculation>
+        <Field table="RC2FM_GLOBALS" id="14" name="API_Response__Token_Status"/>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>False</Calculation>
+      </Step>
+      <Step enable="True" id="69" name="Else"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Substitute ( $response ; [ ","; ¶ ] ; [ "{" ; ""] ; ["}" ; "" ] ; [ "\"" ; ""] ; [ "+" ; "" ] )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$parsedResponse</Name>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="68" name="If">
+        <Calculation>PatternCount ( $parsedResponse ; "User is already active" )</Calculation>
+      </Step>
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>""</Calculation>
+        <Field table="RC2FM_GLOBALS" id="14" name="API_Response__Token_Status"/>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>True</Calculation>
+      </Step>
+      <Step enable="True" id="125" name="Else If">
+        <Calculation>PatternCount ( $parsedResponse ; "token expired" )</Calculation>
+      </Step>
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>""</Calculation>
+        <Field table="RC2FM_GLOBALS" id="14" name="API_Response__Token_Status"/>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>False</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="186" name="RC2FM__Subscript_Store_CallerIDs">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Store global variables in field (for value list population)</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>not IsEmpty ( $$DirectNumber )</Calculation>
+      </Step>
+      <Step enable="True" id="147" name="Set Field By Name">
+        <Result>
+          <Calculation>"Direct number " &amp; PhoneFormat ( $$DirectNumber ; "# (###) ###-####" )</Calculation>
+        </Result>
+        <TargetName>
+          <Calculation>$$rc2fm_caller_id_storage</Calculation>
+        </TargetName>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="68" name="If">
+        <Calculation>not IsEmpty ( $$MainCompanyNumber )</Calculation>
+      </Step>
+      <Step enable="True" id="147" name="Set Field By Name">
+        <Result>
+          <Calculation>GetField ( $$rc2fm_caller_id_storage ) &amp; ¶ &amp; "Main company number " &amp; PhoneFormat ( $$MainCompanyNumber ; "# (###) ###-####" )</Calculation>
+        </Result>
+        <TargetName>
+          <Calculation>$$rc2fm_caller_id_storage</Calculation>
+        </TargetName>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="68" name="If">
+        <Calculation>not IsEmpty ( $$CompanyFaxNumber )</Calculation>
+      </Step>
+      <Step enable="True" id="147" name="Set Field By Name">
+        <Result>
+          <Calculation>GetField ( $$rc2fm_caller_id_storage ) &amp; ¶ &amp; "Company fax number " &amp; PhoneFormat ( $$CompanyFaxNumber ; "# (###) ###-####" )</Calculation>
+        </Result>
+        <TargetName>
+          <Calculation>$$rc2fm_caller_id_storage</Calculation>
+        </TargetName>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="68" name="If">
+        <Calculation>not IsEmpty ( $$CompanyNumber )</Calculation>
+      </Step>
+      <Step enable="True" id="147" name="Set Field By Name">
+        <Result>
+          <Calculation>GetField ( $$rc2fm_caller_id_storage ) &amp; ¶ &amp; "Company number " &amp; PhoneFormat ( $$CompanyNumber ; "# (###) ###-####" )</Calculation>
+        </Result>
+        <TargetName>
+          <Calculation>$$rc2fm_caller_id_storage</Calculation>
+        </TargetName>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>set default caller ID (invert this conditional sequence to modify the default)</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>not IsEmpty ( $$DirectNumber )</Calculation>
+      </Step>
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>"Direct number " &amp; PhoneFormat ( $$DirectNumber ; "# (###) ###-####" )</Calculation>
+        <Field table="RC2FM_GLOBALS" id="20" name="RingOut_CallerID_Selected"/>
+      </Step>
+      <Step enable="True" id="125" name="Else If">
+        <Calculation>not IsEmpty ( $$MainCompanyNumber )</Calculation>
+      </Step>
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>"Main company number " &amp; PhoneFormat ( $$MainCompanyNumber ; "# (###) ###-####" )</Calculation>
+        <Field table="RC2FM_GLOBALS" id="20" name="RingOut_CallerID_Selected"/>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="82" name="RC2FM__Subscript_Build_Session_ID">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Collect environment variables</Text>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>Let ( [ 
+
+$$rc2fm_session_id = 
+
+	"&amp;persistent_id=" &amp; Base64Encode ( Get ( PersistentID ) ) &amp; 
+
+	"&amp;device=" &amp; Base64Encode ( Get ( Device ) ) &amp; 
+
+	"&amp;platform=" &amp; Base64Encode ( Get ( SystemPlatform ) ) &amp; 
+
+	"&amp;network=" &amp; Base64Encode (  If ( Abs ( Get ( SystemPlatform ) ) = 3 ; Get ( NetworkType ) ; "0" ) ) &amp; 
+
+	"&amp;fm_version=" &amp;  Base64Encode ( Get ( ApplicationVersion ) ) &amp;
+
+	"&amp;user_language=" &amp; Base64Encode ( Get ( ApplicationLanguage ) ) ] ; 
+
+//calculation
+ "" 
+
+) //end Let
+</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="151" name="-"/>
+    <Script includeInMenu="False" runFullAccess="False" id="149" name="RC2FM__Start_Timer">
+      <Step enable="True" id="148" name="Install OnTimer Script">
+        <Interval>
+          <Calculation>7</Calculation>
+        </Interval>
+        <Script id="203" name="RC2FM__Check_for_Messages"/>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="203" name="RC2FM__Check_for_Messages">
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>If user is logged into RingCentral, check for existence of log records in FileMaker log table</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>not IsEmpty ( $$extension )</Calculation>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="1" name="Perform Script">
+        <Calculation>$$messageLogTO &amp; "_kan_RC_extension_id"</Calculation>
+        <Script id="210" name="Subscript__Get_Quoted_Field_Name ( param )"/>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptResult )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$fieldName</Name>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Calculation>$$messageLogTO &amp; "_kan_RC_extension_id"</Calculation>
+        <Script id="212" name="Subscript__Get_Quoted_Table_Occurrence_Name ( param )"/>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptResult )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$TOname</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>ExecuteSQL ( 
+
+"SELECT " &amp; $fieldName &amp; 
+
+" FROM " &amp; $TOname &amp; 
+
+" WHERE " &amp; $fieldName &amp; " = " &amp; $$extension  ; 
+
+", " ; ¶ ; ""
+
+ )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$SQL</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>If less than 2 matching log records are found a complete history download is initiated</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>ValueCount ( $SQL ) &lt; 2</Calculation>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Script id="134" name="RC2FM__Function__GetMessages_SUBMIT ( param )"/>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Script id="187" name="RC2FM__Function__GetRecordings_SUBMIT ( param )"/>
+      </Step>
+      <Step enable="True" id="69" name="Else"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>If more than 2 matching log records are found, an incremental download of the past 6 seconds of activity is initiated</Text>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Calculation> Get ( CurrentHostTimestamp ) - 6</Calculation>
+        <Script id="188" name="RC2FM__Utility__Convert_Timestamp_to_UNIX ( param )"/>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptResult )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$unixTime</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="68" name="If">
+        <Calculation>Length ( $unixTime ) &gt; 11</Calculation>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Calculation>$unixTime</Calculation>
+        <Script id="134" name="RC2FM__Function__GetMessages_SUBMIT ( param )"/>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Calculation>$unixTime</Calculation>
+        <Script id="187" name="RC2FM__Function__GetRecordings_SUBMIT ( param )"/>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="150" name="RC2FM__Stop_Timer">
+      <Step enable="True" id="148" name="Install OnTimer Script"/>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="202" name="-"/>
+  </Group>
+  <Script includeInMenu="False" runFullAccess="False" id="65" name="-"/>
+  <Group groupCollapsed="False" includeInMenu="False" id="92" name="RC2FM Protocol Controls">
+    <Script includeInMenu="False" runFullAccess="False" id="119" name="RC2FM__Fail [Internal]">
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>Get ( ScriptParameter )</Calculation>
+        <Field table="RC2FM_GLOBALS" id="16" name="API_Response__RC_Reply"/>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="90" name="RC2FM__AJAX_Fail">
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>"{\"error\":-1,\"message\":" &amp; $response &amp; "}"</Calculation>
+        <Field table="RC2FM_GLOBALS" id="16" name="API_Response__RC_Reply"/>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="89" name="RC2FM__AJAX_Success">
+      <Step enable="True" id="76" name="Set Field">
+        <Calculation>"SUCCESS: " &amp; $response</Calculation>
+        <Field table="RC2FM_GLOBALS" id="16" name="API_Response__RC_Reply"/>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="95" name="RC2FM__FaxOut_Validate_MIME_Type ( param )">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Validate file agains RingCentral® supported_MIME_Types</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>417</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$fileExtension</Name>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>Let ( [
+
+	extension = Substitute ( $fileExtension ; "." ; "" ) ] ; 
+
+	//calculation
+
+	Case (
+		
+		IsEmpty ( extension ) ; "400" ;
+
+		extension = "pdf" ; "application/pdf" ;
+
+		extension = "psd" ; "image/vnd.adobe.photoshop" ;
+
+		extension = "doc" ; "application/msword" ;
+
+		extension = "docm" ; "application/vnd.ms-word.document.macroenabled.12" ;
+
+		extension = "docx" ; "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ;
+
+		extension = "xls" ; "application/vnd.ms-excel" ;
+
+		extension = "xlsb" ; "application/vnd.ms-excel.sheet.binary.macroenabled.12" ;
+
+		extension = "xlsm" ; "application/vnd.ms-excel.sheet.macroenabled.12" ;
+
+		extension = "xlsx" ; "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ;
+
+		extension = "ppt" ; "application/vnd.ms-powerpoint" ;
+
+		extension = "pptm" ; "application/vnd.ms-powerpoint.presentation.macroenabled.12" ;
+
+		extension = "pptx" ; "application/vnd.openxmlformats-officedocument.presentationml.presentation" ;
+
+		extension = "vsd" ; "application/vnd.visio" ;
+
+		extension = "pub" ; "application/x-mspublisher" ;
+
+		extension = "wps" ; "application/vnd.ms-works" ;
+
+		extension = "wri" ; "application/x-mswrite" ;
+
+		extension = "tiff" or extension = "tif" ; "image/tiff" ;
+
+		extension = "jpeg" or extension = "jpg" ; "image/jpeg" ;
+
+		extension = "gif" ; "image/gif" ;
+
+		extension = "bmp" ; "image/bmp" ;
+
+		extension = "png" ; "image/png" ;
+
+		extension = "pcx" ; "image/x-pcx" ;
+
+		extension = "tga" ; "image/x-tga" ;
+
+		extension = "wpd" ; "application/vnd.wordperfect" ;
+
+		extension = "htm" or extension = "html" ; "text/html" ;
+
+		extension = "rtf" ; "application/rtf" ;
+
+		extension = "txt" ; "text/plain" ;
+
+		extension = "xml" ; "application/xml" ;
+
+		extension = "csv" ; "text/csv" ;
+
+		//default result
+		"417" 
+
+	) //end Case
+
+) //end Let</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="124" name="RC2FM__FaxOut_Validate_FileSize ( param )">
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>958</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$fileSize</Name>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>$fileSize &gt; 5 and PatternCount( Get ( ApplicationVersion ) ; "Web" ) //PlatformWeb</Calculation>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Calculation>"{\"error\":511,\"message\":" &amp; "FaxOut upload file size limit for WebDirect is 5 KB" &amp; "}"</Calculation>
+        <Script id="119" name="RC2FM__Fail [Internal]"/>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>False</Calculation>
+      </Step>
+      <Step enable="True" id="125" name="Else If">
+        <Calculation>$fileSize &gt; 19100</Calculation>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Calculation>"{\"error\":511,\"message\":" &amp; "FaxOut upload file size limit is 20 MB" &amp; "}"</Calculation>
+        <Script id="119" name="RC2FM__Fail [Internal]"/>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>False</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>True</Calculation>
+      </Step>
+    </Script>
+  </Group>
+  <Script includeInMenu="False" runFullAccess="False" id="94" name="-"/>
+  <Group groupCollapsed="False" includeInMenu="False" id="96" name="RC2FM Functions">
+    <Script includeInMenu="False" runFullAccess="False" id="198" name="-"/>
+    <Group groupCollapsed="False" includeInMenu="False" id="106" name="FaxOut">
+      <Script includeInMenu="False" runFullAccess="False" id="117" name="RC2FM__FaxOut ( chooseFile )">
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Capture destination fax number</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptParameter )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$toPhone</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>958</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Insert user selected FaxOut doucument into container field</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Abs ( Get ( SystemPlatform ) ) = 3</Calculation>
+        </Step>
+        <Step enable="True" id="85" name="Allow User Abort">
+          <Set state="False"/>
+        </Step>
+        <Step enable="True" id="87" name="Show Custom Dialog">
+          <Title>
+            <Calculation>"Choose source"</Calculation>
+          </Title>
+          <Message>
+            <Calculation>"Choose Fax document source"</Calculation>
+          </Message>
+          <Buttons>
+            <Button CommitState="False">
+              <Calculation>"Photos"</Calculation>
+            </Button>
+            <Button CommitState="False">
+              <Calculation>"Camera"</Calculation>
+            </Button>
+            <Button CommitState="False">
+              <Calculation>"Files"</Calculation>
+            </Button>
+          </Buttons>
+        </Step>
+        <Step enable="True" id="85" name="Allow User Abort">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Get ( LastMessageChoice ) = 1</Calculation>
+        </Step>
+        <Step enable="True" id="86" name="Set Error Capture">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="161" name="Insert from Device">
+          <InsertFrom value="Photo Library"/>
+          <Field table="RC2FM_GLOBALS" id="17" name="FaxOut_Utility_Container"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Get ( LastError ) ≠ 0</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>Get ( LastMessageChoice ) = 2</Calculation>
+        </Step>
+        <Step enable="True" id="86" name="Set Error Capture">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="161" name="Insert from Device">
+          <InsertFrom value="Camera"/>
+          <Field table="RC2FM_GLOBALS" id="17" name="FaxOut_Utility_Container"/>
+          <DeviceOptions>
+            <Camera choice="Back"/>
+            <Resolution choice="Medium"/>
+          </DeviceOptions>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Get ( LastError ) ≠ 0</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="86" name="Set Error Capture">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="131" name="Insert File">
+          <UniversalPathList type="Embedded"/>
+          <Field table="RC2FM_GLOBALS" id="17" name="FaxOut_Utility_Container"/>
+          <DialogOptions asFile="False" enable="True">
+            <Title>
+              <Calculation>"Choose File to Fax Out"</Calculation>
+            </Title>
+            <Storage type="InsertOnly"/>
+            <Compress type="Never"/>
+            <FilterList>
+              <Filter id="0">
+                <name>
+                  <Calculation>"FAxOut Formats"</Calculation>
+                </name>
+                <List>png; jpg; gif; bmp; tif; tiff; pdf; doc; docx; xls; xlsx; txt; rtf; jpeg; ppt; pptx; csv</List>
+              </Filter>
+            </FilterList>
+          </DialogOptions>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Get ( LastError ) ≠ 0</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="86" name="Set Error Capture">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="131" name="Insert File">
+          <UniversalPathList type="Embedded"/>
+          <Field table="RC2FM_GLOBALS" id="17" name="FaxOut_Utility_Container"/>
+          <DialogOptions asFile="False" enable="True">
+            <Title>
+              <Calculation>"Choose File to Fax Out"</Calculation>
+            </Title>
+            <Storage type="InsertOnly"/>
+            <Compress type="Never"/>
+            <FilterList>
+              <Filter id="0">
+                <name>
+                  <Calculation>"FAxOut Formats"</Calculation>
+                </name>
+                <List>png; jpg; gif; bmp; tif; tiff; pdf; doc; docx; xls; xlsx; txt; rtf; jpeg; ppt; pptx; csv</List>
+              </Filter>
+            </FilterList>
+          </DialogOptions>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Get ( LastError ) ≠ 0</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Validate container file size against platform and API restrictions</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Round ( 
+//number
+GetContainerAttribute ( RC2FM_GLOBALS::FaxOut_Utility_Container ; "fileSize" ) / 1024 ; 
+
+//precision
+0
+ )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fileSize</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>$fileSize</Calculation>
+          <Script id="124" name="RC2FM__FaxOut_Validate_FileSize ( param )"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$result</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $result ) or $result = 0</Calculation>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>""</Calculation>
+          <Field table="RC2FM_GLOBALS" id="17" name="FaxOut_Utility_Container"/>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Parse container's file name and remove offending characters</Text>
+        </Step>
+        <Step enable="True" id="85" name="Allow User Abort">
+          <Set state="False"/>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>GetContainerAttribute ( RC2FM_GLOBALS::FaxOut_Utility_Container ; "Filename" )</Calculation>
+          <Script id="121" name="RC2FM__Utility__Cleanup_FileName ( param )"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fileName</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $fileName or $fileName = 958 )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>"{\"error\":10,\"message\":" &amp; "File name is invalid or missing." &amp; "}"</Calculation>
+          <Script id="119" name="RC2FM__Fail [Internal]"/>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>""</Calculation>
+          <Field table="RC2FM_GLOBALS" id="17" name="FaxOut_Utility_Container"/>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Validate file type against supported MIME types</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>$fileName</Calculation>
+          <Script id="120" name="RC2FM__Subscript__FaxOut_Validate ( param )"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$mimeType</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $mimeType or $mimeType = 0 )</Calculation>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>""</Calculation>
+          <Field table="RC2FM_GLOBALS" id="17" name="FaxOut_Utility_Container"/>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Declare FaxOut global variables</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$toPhone</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$toPhone</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$fileName</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$fileName</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$mimeType</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$mimeType</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>GetFieldName ( RC2FM_GLOBALS::FaxOut_Utility_Container )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$fileContainer</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Submit FaxOut request</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="122" name="RC2FM__Function__FaxOut_SUBMIT ( params )"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process response</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$result</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $result ) or $result = 958</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>"{\"error\":958,\"message\":" &amp; "FaxOut parameters missing." &amp; "}"</Calculation>
+          <Script id="119" name="RC2FM__Fail [Internal]"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>""</Calculation>
+          <Field table="RC2FM_GLOBALS" id="17" name="FaxOut_Utility_Container"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+      </Script>
+      <Script includeInMenu="False" runFullAccess="False" id="125" name="RC2FM__FaxOut ( selectedContainer)">
+        <Step enable="True" id="85" name="Allow User Abort">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for script parameter and required global variables</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( Get ( ScriptParameter ) ) or IsEmpty ( $$FaxToPhone )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>958</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptParameter )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fileContainer</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Capture destination fax number from global variable</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$$FaxToPhone</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$toPhone</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Validate container file size against platform and API restrictions</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Round ( 
+//number
+GetContainerAttribute ( GetField ( $fileContainer ) ; "fileSize" ) / 1024 ; 
+
+//precision
+0
+ )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fileSize</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>$fileSize</Calculation>
+          <Script id="124" name="RC2FM__FaxOut_Validate_FileSize ( param )"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$result</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $result ) or $result = 0</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Parse container's file name and remove special characters</Text>
+        </Step>
+        <Step enable="True" id="85" name="Allow User Abort">
+          <Set state="False"/>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>GetContainerAttribute ( GetField ( $fileContainer ) ; "Filename" )</Calculation>
+          <Script id="121" name="RC2FM__Utility__Cleanup_FileName ( param )"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fileName</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $fileName or $fileName = 958 )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>"{\"error\":10,\"message\":" &amp; "File name is invalid or missing." &amp; "}"</Calculation>
+          <Script id="119" name="RC2FM__Fail [Internal]"/>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Validate file type against supported MIME types</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>$fileName</Calculation>
+          <Script id="120" name="RC2FM__Subscript__FaxOut_Validate ( param )"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$mimeType</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $mimeType or $mimeType = 0 )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Declare FaxOut global variables</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$toPhone</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$toPhone</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$fileName</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$fileName</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$mimeType</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$mimeType</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$fileContainer</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$fileContainer</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Submit FaxOut request</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="122" name="RC2FM__Function__FaxOut_SUBMIT ( params )"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process response</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$result</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $result ) or $result = 958</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>"{\"error\":958,\"message\":" &amp; "FaxOut parameters missing." &amp; "}"</Calculation>
+          <Script id="119" name="RC2FM__Fail [Internal]"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+      </Script>
+      <Script includeInMenu="False" runFullAccess="False" id="130" name="-"/>
+      <Script includeInMenu="False" runFullAccess="False" id="120" name="RC2FM__Subscript__FaxOut_Validate ( param )">
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Parse file name and remove offending characters from filename</Text>
+        </Step>
+        <Step enable="True" id="85" name="Allow User Abort">
+          <Set state="False"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for script parameter</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>958</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptParameter )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fileName</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Separate file extension from file name</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Let ( [ 
+
+FileName = $fileName ;
+
+ParsedName = Substitute ( FileName ; "." ; ¶ ) ;
+
+FileExtension = "." &amp; RightValues ( ParsedName ; 1 ) ;
+
+MinusExtension = Left ( FileName ; ( Length ( FileName ) - Length ( FileExtension ) + 1 ) ) ;
+
+CleanName = Substitute ( MinusExtension ; " " ; "_" ) ] ; 
+
+//calculation
+Substitute ( CleanName &amp; FileExtension ; ¶ ; "" )
+
+) // end Let</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fileName</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Parse file extension </Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Let ( [ 
+
+ParsedName = Substitute ( $fileName ; "." ; ¶ ) ;
+
+FileExtension = RightValues ( ParsedName ; 1 ) ] ;
+
+//calculation
+Substitute ( FileExtension ; ¶ ; "" )
+
+) // end Let</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fileExtension</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Validate file extension against supported MIME types</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $fileExtension )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>"{\"error\":958,\"message\":" &amp; "Unable to determine FaxOut file type. File extension not provided/not available." &amp; "}"</Calculation>
+          <Script id="119" name="RC2FM__Fail [Internal]"/>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>False</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>$fileExtension</Calculation>
+          <Script id="95" name="RC2FM__FaxOut_Validate_MIME_Type ( param )"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$mimeType</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $mimeType ) or $mimeType = "400"</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>"{\"error\":400,\"message\":" &amp; "Unable to determine FaxOut file type." &amp; "}"</Calculation>
+          <Script id="119" name="RC2FM__Fail [Internal]"/>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>False</Calculation>
+        </Step>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>$mimeType = "417"</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>"{\"error\":417,\"message\":" &amp; "Unsupported FaxOut file type." &amp; "}"</Calculation>
+          <Script id="119" name="RC2FM__Fail [Internal]"/>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>False</Calculation>
+        </Step>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>$mimeType</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+      </Script>
+      <Script includeInMenu="False" runFullAccess="False" id="122" name="RC2FM__Function__FaxOut_SUBMIT ( params )">
+        <Step enable="True" id="85" name="Allow User Abort">
+          <Set state="False"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for global variables</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$toPhone ) or IsEmpty ( $$fileName ) or IsEmpty ( $$mimeType )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>958</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for live token</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="5" name="RC2FM__Check_Session_Status"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$tokenStatus</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process response</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) &amp; not IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="78" name="RC2FM__Login"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$extension )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>$tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Initialize session variables</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="82" name="RC2FM__Subscript_Build_Session_ID"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Initialize UI </Text>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>"Loading..."</Calculation>
+          <Field table="RC2FM_GLOBALS" id="16" name="API_Response__RC_Reply"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Execute FaxOut function</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>PatternCount( Get ( ApplicationVersion ) ; "Web" ) //PlatformWeb</Calculation>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Use Insert from URL method on WebDirect platform </Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/api/v1.php?action=fax_base64&amp;auth=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_Name )  &amp; If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" )  &amp; 
+"&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; 
+"&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; 
+$$rc2fm_session_id &amp; 
+"&amp;to=" &amp; Base64Encode ( $toPhone ) &amp; 
+"&amp;faxResolution=" &amp; Base64Encode ( "High") &amp; 
+"&amp;Content-Type=" &amp; Base64Encode ( $$mimeType ) &amp;
+If ( not IsEmpty ( $$coverPageIndex ) ; "&amp;coverIndex=" &amp; Base64Encode ( $$coverPageIndex ) ; "&amp;coverIndex=" &amp; Base64Encode ( "0" ) ) &amp; 
+If ( not IsEmpty ( $$coverPageText ) and not IsEmpty ( $$coverPageIndex ); "&amp;coverPageText=" &amp; Base64Encode ( $$coverPageText) ; "" ) &amp; 
+"&amp;attachment_filename=" &amp; Base64Encode ( $fileName ) &amp; 
+"&amp;attachment_content=" &amp; Substitute ( Base64Encode ( GetField ( $$fileContainer ) ) ;[Char ( "10" ); ""]; [Char ( "13" ); ""]; [Char ( "¶" ); ""] )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$url</Name>
+        </Step>
+        <Step enable="True" id="160" name="Insert from URL">
+          <NoInteract state="True"/>
+          <DontEncodeURL state="False"/>
+          <SelectAll state="True"/>
+          <VerifySSLCertificates state="True"/>
+          <Calculation>$url</Calculation>
+          <Field table="RC2FM_GLOBALS" id="16" name="API_Response__RC_Reply"/>
+        </Step>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Use AJAX form method in WebViewer (all other FM platforms)</Text>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Capture host IP for AJAX response</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Case (
+    Get ( HostIPAddress ) = "" ;
+    "$";  // File is local
+    Get ( HostIPAddress )
+)</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$FileHost</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Substitute variables in AJAX template</Text>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>"data:text/html," &amp; 
+Substitute ( 
+      RC2FM_SETTINGS::RC_HtmlAjaxTemplate; 
+      ["{{URL}}"; RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/api/v1.php?action=fax_base64"];
+      ["{{FORM_DATA}}"; "auth=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_Name )  &amp; 
+		If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" )  &amp; 
+		"&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; 
+		"&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; 
+		$$rc2fm_session_id &amp; 
+		"&amp;to=" &amp; Base64Encode ( $$toPhone ) &amp; 
+		"&amp;faxResolution=" &amp; Base64Encode ( "High") &amp; 
+		"&amp;Content-Type=" &amp; Base64Encode ( $$mimeType ) &amp; 
+		"&amp;coverIndex=" &amp; If ( not IsEmpty ( $$coverPageIndex ) ; "&amp;coverIndex=" &amp; Base64Encode ( $$coverPageIndex ) ; "&amp;coverIndex=" &amp; Base64Encode ( "0" ) ) &amp; 
+		"&amp;coverPageText=" &amp; If ( not IsEmpty ( $$coverPageText ) and not IsEmpty ( $$coverPageIndex ); "&amp;coverPageText=" &amp; Base64Encode ( $$coverPageText) ; "" ) &amp; 
+		"&amp;attachment_filename=" &amp; Base64Encode ( $$fileName ) &amp; 
+		"&amp;attachment_content=" &amp; Substitute ( Base64Encode ( GetField ( $$fileContainer ) ) ;[Char ( "10" ); ""]; [Char ( "13" ); ""]; [Char ( "¶" ); ""] )];
+      ["{{FILE_HOST}}"; $FileHost];
+      ["{{FILE_NAME}}"; Get( FileName )]
+    )</Calculation>
+          <Field table="RC2FM_GLOBALS" id="18" name="API_Functions_Utility_field"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Submit AJAX form to WebViewer</Text>
+        </Step>
+        <Step enable="True" id="85" name="Allow User Abort">
+          <Set state="True"/>
+        </Step>
+        <Step enable="False" id="79" name="Freeze Window"/>
+        <Step enable="True" id="146" name="Set Web Viewer">
+          <Action value="GoToURL"/>
+          <ObjectName>
+            <Calculation>"ajax_web_viewer"</Calculation>
+          </ObjectName>
+          <URL custom="True">
+            <Calculation>RC2FM_GLOBALS::API_Functions_Utility_field</Calculation>
+          </URL>
+        </Step>
+        <Step enable="True" id="17" name="Go to Field">
+          <SelectAll state="True"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Clean up</Text>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>""</Calculation>
+          <Field table="RC2FM_GLOBALS" id="17" name="FaxOut_Utility_Container"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Reset FaxOut global variables</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$toPhone</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$fileName</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$mimeType</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$fileContainer</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$coverPageIndex</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$coverPageText</Name>
+        </Step>
+      </Script>
+    </Group>
+    <Script includeInMenu="False" runFullAccess="False" id="148" name="-"/>
+    <Group groupCollapsed="False" includeInMenu="False" id="104" name="RingOut">
+      <Script includeInMenu="False" runFullAccess="False" id="132" name="RC2FM__Function__RingOut_SUBMIT ( params )">
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="85" name="Allow User Abort">
+          <Set state="False"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for global variables</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$callTo ) or IsEmpty ( $$callFrom ) or IsEmpty ( $$callerID )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>958</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for live token</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="5" name="RC2FM__Check_Session_Status"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$tokenStatus</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process token test response</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) &amp; not IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="78" name="RC2FM__Login"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$extension )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>$tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Proceed with RingOut</Text>
+        </Step>
+        <Step enable="False" id="141" name="Set Variable">
+          <Value>
+            <Calculation>If ( IsEmpty ( $$DirectNumber) ; $$MainCompanyNumber ; $$DirectNumber ) //$$DirectNumber //</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$callerID</Name>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>"Loading..."</Calculation>
+          <Field table="RC2FM_GLOBALS" id="16" name="API_Response__RC_Reply"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Initialize session variables</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="82" name="RC2FM__Subscript_Build_Session_ID"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Use Insert from URL method on WebDirect platform</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>PatternCount( Get ( ApplicationVersion ) ; "Web" ) //PlatformWeb</Calculation>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/api/v1.php?action=ringout&amp;auth=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_Name )  &amp; If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" )  &amp; 
+"&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; 
+"&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; 
+$$rc2fm_session_id &amp; 
+"&amp;to=" &amp; Base64Encode ( $$toPhone ) &amp; 
+"&amp;from=" &amp; Base64Encode ( $$fromPhone ) &amp;
+"&amp;caller_id=" //&amp; Base64Encode ( $$callerID )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$url</Name>
+        </Step>
+        <Step enable="True" id="160" name="Insert from URL">
+          <NoInteract state="True"/>
+          <DontEncodeURL state="False"/>
+          <SelectAll state="True"/>
+          <VerifySSLCertificates state="True"/>
+          <Calculation>$url</Calculation>
+          <Field table="RC2FM_GLOBALS" id="16" name="API_Response__RC_Reply"/>
+        </Step>
+        <Step enable="True" id="17" name="Go to Field">
+          <SelectAll state="True"/>
+        </Step>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Use AJAX form method in WebViewer (all other FM platforms)</Text>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Capture host IP for AJAX response</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Case (
+    Get ( HostIPAddress ) = "" ;
+    "$";  // File is local
+    Get ( HostIPAddress )
+)</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$FileHost</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Substitute variables in AJAX template</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Let
+(
+[
+  $html = Substitute ( 
+	RC2FM_SETTINGS::RC_HtmlAjaxTemplate; 
+	["{{URL}}"; RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/api/v1.php?action=ringout&amp;auth=" &amp; 
+	Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) &amp; If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" )  &amp; 	"&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; "&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; $$rc2fm_session_id];
+	["{{FORM_DATA}}"; "to=" &amp; Base64Encode ( $$callTo ) &amp; "&amp;from=" &amp; Base64Encode ( $$callFrom ) &amp; "&amp;caller_id=" ];
+	["{{FILE_HOST}}"; $FileHost ];
+	["{{FILE_NAME}}"; Get( FileName )]
+    )
+];
+"data:text/html," &amp; $html
+)</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$url</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Submit to WebViewer</Text>
+        </Step>
+        <Step enable="False" id="79" name="Freeze Window"/>
+        <Step enable="True" id="146" name="Set Web Viewer">
+          <Action value="GoToURL"/>
+          <ObjectName>
+            <Calculation>"ajax_web_viewer"</Calculation>
+          </ObjectName>
+          <URL custom="True">
+            <Calculation>$url</Calculation>
+          </URL>
+        </Step>
+        <Step enable="True" id="17" name="Go to Field">
+          <SelectAll state="True"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Clean up</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$callTo</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$callFrom</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$callerID</Name>
+        </Step>
+      </Script>
+    </Group>
+    <Script includeInMenu="False" runFullAccess="False" id="144" name="-"/>
+    <Group groupCollapsed="False" includeInMenu="False" id="102" name="SMS [Outbound]">
+      <Script includeInMenu="False" runFullAccess="False" id="133" name="RC2FM__Function__SMS_SUBMIT ( params )">
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="85" name="Allow User Abort">
+          <Set state="False"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for global variables</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$smsTo ) or IsEmpty ( $$message )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>958</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Filter out non E164 characters</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Filter ( $$smsTo ; "0123456789+" )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$smsTo</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for live token</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="5" name="RC2FM__Check_Session_Status"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$tokenStatus</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process token test response</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) &amp; not IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="78" name="RC2FM__Login"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$extension )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>$tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Proceed with SMS</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$$DirectNumber
+
+//If ( $$admin = True or IsEmpty ( $$DirectNumber ); $$MainCompanyNumber ; $$DirectNumber )
+
+//If ( IsEmpty ( $$DirectNumber) ; Settings::RC_Username ; $$DirectNumber )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$smsFrom</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Initialize session variables</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="82" name="RC2FM__Subscript_Build_Session_ID"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Capture host IP for AJAX response</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Case (
+    Get ( HostIPAddress ) = "" ;
+    "$";  // File is local
+    Get ( HostIPAddress )
+)</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$FileHost</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Substitute variables in AJAX template</Text>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>"Loading..."</Calculation>
+          <Field table="RC2FM_GLOBALS" id="16" name="API_Response__RC_Reply"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Use Insert from URL method on WebDirect platform</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>PatternCount( Get ( ApplicationVersion ) ; "Web" ) //PlatformWeb</Calculation>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/api/v1.php?action=sms&amp;auth=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_Name )  &amp; If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" )  &amp; 
+"&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; 
+"&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; 
+$$rc2fm_session_id &amp; 
+"&amp;from=" &amp; Base64Encode ( $$smsFrom ) &amp; 
+"&amp;to=" &amp; Base64Encode ( $$smsTo ) &amp; 
+"&amp;text=" &amp; ( Base64Encode ( $$message ) )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$url</Name>
+        </Step>
+        <Step enable="True" id="160" name="Insert from URL">
+          <NoInteract state="True"/>
+          <DontEncodeURL state="False"/>
+          <SelectAll state="True"/>
+          <VerifySSLCertificates state="True"/>
+          <Calculation>$url</Calculation>
+          <Field table="RC2FM_GLOBALS" id="16" name="API_Response__RC_Reply"/>
+        </Step>
+        <Step enable="True" id="17" name="Go to Field">
+          <SelectAll state="True"/>
+        </Step>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Let
+(
+[
+  $html = Substitute ( 
+      RC2FM_SETTINGS::RC_HtmlAjaxTemplate; 
+      ["{{URL}}"; RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/api/v1.php?action=sms&amp;auth=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) &amp; If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) &amp; "&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; "&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; $$rc2fm_session_id ];
+      ["{{FORM_DATA}}"; "from=" &amp; Base64Encode ( $$smsFrom ) &amp; "&amp;to=" &amp; Base64Encode ( $$smsTo ) &amp; "&amp;text=" &amp;  ( Base64Encode ( $$message ) )];
+      ["{{FILE_HOST}}"; $FileHost];
+      ["{{FILE_NAME}}"; Get( FileName )]
+    ) 
+];
+"data:text/html," &amp; $html
+)</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$url</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Submit to WebViewer</Text>
+        </Step>
+        <Step enable="False" id="79" name="Freeze Window"/>
+        <Step enable="True" id="146" name="Set Web Viewer">
+          <Action value="GoToURL"/>
+          <ObjectName>
+            <Calculation>"ajax_web_viewer"</Calculation>
+          </ObjectName>
+          <URL custom="True">
+            <Calculation>$url</Calculation>
+          </URL>
+        </Step>
+        <Step enable="True" id="17" name="Go to Field">
+          <SelectAll state="True"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Clean up</Text>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>""</Calculation>
+          <Field table="RC2FM_GLOBALS" id="11" name="SMS_Input_Field"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$smsFrom</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$smsTo</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>""</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$message</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+      </Script>
+    </Group>
+    <Script includeInMenu="False" runFullAccess="False" id="109" name="-"/>
+    <Group groupCollapsed="False" includeInMenu="False" id="110" name="Get Message Logs">
+      <Script includeInMenu="False" runFullAccess="False" id="134" name="RC2FM__Function__GetMessages_SUBMIT ( param )">
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for live token</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="5" name="RC2FM__Check_Session_Status"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$tokenStatus</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Capture 'dateFrom' parameter</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>not IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptParameter )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$dateFrom</Name>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process token test response</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) &amp; not IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="78" name="RC2FM__Login"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$extension )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>$tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Proceed with GetMessages</Text>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Clear msg.php raw data field (if any)</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>not IsEmpty ( RC2FM_GLOBALS::API_Response__RC_download_log )</Calculation>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>""</Calculation>
+          <Field table="RC2FM_GLOBALS" id="23" name="API_Response__RC_download_log"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Fetch new data and insert into field</Text>
+        </Step>
+        <Step enable="True" id="86" name="Set Error Capture">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/msg.php?auth=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) &amp; If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" )  &amp; 
+"&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; 
+"&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; 
+$$rc2fm_session_id &amp; 
+If ( not IsEmpty ( $dateFrom ) ; "&amp;dateFrom=" &amp; Base64Encode ( $dateFrom ) ; "" )
+
+//example 'dateFrom' parameter: "2016-06-16T10:48:20.000Z"</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$url</Name>
+        </Step>
+        <Step enable="True" id="160" name="Insert from URL">
+          <NoInteract state="True"/>
+          <DontEncodeURL state="False"/>
+          <SelectAll state="True"/>
+          <VerifySSLCertificates state="False"/>
+          <Calculation>$url</Calculation>
+          <Field table="RC2FM_GLOBALS" id="23" name="API_Response__RC_download_log"/>
+        </Step>
+        <Step enable="True" id="17" name="Go to Field">
+          <SelectAll state="True"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>if insert is successful, call parse URL operations</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( LastError )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$errorNum</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$errorNum = 0 //and not PatternCount ( General_Log::_fm_RC_api_Response ; "error" )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="135" name="RC2FM__Operation__Parse_MessageLog"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+      </Script>
+    </Group>
+    <Script includeInMenu="False" runFullAccess="False" id="145" name="-"/>
+    <Group groupCollapsed="False" includeInMenu="False" id="112" name="Get Call/Recordings Log">
+      <Script includeInMenu="False" runFullAccess="False" id="187" name="RC2FM__Function__GetRecordings_SUBMIT ( param )">
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for live token</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="5" name="RC2FM__Check_Session_Status"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$tokenStatus</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Capture 'dateFrom' parameter</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>not IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptParameter )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$dateFrom</Name>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process token test response</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) &amp; not IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="78" name="RC2FM__Login"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$extension )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>$tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Proceed with GetMessages</Text>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Clear msg.php raw data field (if any)</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>not IsEmpty ( RC2FM_GLOBALS::API_Response__RC_download_log )</Calculation>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>""</Calculation>
+          <Field table="RC2FM_GLOBALS" id="23" name="API_Response__RC_download_log"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Fetch new data and insert into field</Text>
+        </Step>
+        <Step enable="True" id="86" name="Set Error Capture">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/calllog.php?auth=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) &amp; If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" )  &amp; 
+"&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; 
+"&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; 
+$$rc2fm_session_id &amp; 
+If ( not IsEmpty ( $dateFrom ) ; "&amp;dateFrom=" &amp; Base64Encode ( $dateFrom ) ; "" )
+
+//example 'dateFrom' parameter: "2016-06-16T10:48:20.000Z"</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$url</Name>
+        </Step>
+        <Step enable="True" id="160" name="Insert from URL">
+          <NoInteract state="True"/>
+          <DontEncodeURL state="False"/>
+          <SelectAll state="True"/>
+          <VerifySSLCertificates state="False"/>
+          <Calculation>$url</Calculation>
+          <Field table="RC2FM_GLOBALS" id="23" name="API_Response__RC_download_log"/>
+        </Step>
+        <Step enable="True" id="17" name="Go to Field">
+          <SelectAll state="True"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>if insert is successful, call parse URL operations</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( LastError )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$errorNum</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$errorNum = 0 //and not PatternCount ( General_Log::_fm_RC_api_Response ; "error" )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="135" name="RC2FM__Operation__Parse_MessageLog"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+      </Script>
+    </Group>
+    <Script includeInMenu="False" runFullAccess="False" id="146" name="-"/>
+    <Group groupCollapsed="False" includeInMenu="False" id="138" name="Get Attachments/Recordings">
+      <Script includeInMenu="False" runFullAccess="False" id="141" name="RC2FM__Function__Fetch_Attachment">
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for live token</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="5" name="RC2FM__Check_Session_Status"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$tokenStatus</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process token test response</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) &amp; not IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="78" name="RC2FM__Login"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$extension )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>$tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Proceed with Fetching Attachment</Text>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Fetch Base64 file</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/get_attachments.php?auth=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) &amp; If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" )  &amp; 
+"&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; 
+"&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; 
+$$rc2fm_session_id &amp; 
+"&amp;attachment_id=" &amp; Base64Encode ( RC2FM_LOGS::id )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$url</Name>
+        </Step>
+        <Step enable="True" id="86" name="Set Error Capture">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="160" name="Insert from URL">
+          <NoInteract state="True"/>
+          <DontEncodeURL state="False"/>
+          <SelectAll state="True"/>
+          <VerifySSLCertificates state="False"/>
+          <Calculation>$url</Calculation>
+          <Field table="RC2FM_LOGS" id="12" name="attachmenturl"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Get ( LastError ) ≠ 0</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>TrimAll ( RC2FM_LOGS::attachmenturl ; 1 ; 3 )</Calculation>
+          <Field table="RC2FM_LOGS" id="12" name="attachmenturl"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test if scripts can be executed on Server ( PSoS )</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="171" name="Subscript__Validate_Server_Version_≥13"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$Hosted_On_Server</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>not IsEmpty ( RC2FM_LOGS::attachmenturl ) and IsEmpty ( RC2FM_ATTACHMENTS::rawBase64 )</Calculation>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>capture Base64 path</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>GetField ( $$messageLogTo &amp; "attachmenturl" )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$Base64_URL</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Insert Base64 raw data</Text>
+        </Step>
+        <Step enable="True" id="79" name="Freeze Window"/>
+        <Step enable="True" id="160" name="Insert from URL">
+          <NoInteract state="True"/>
+          <DontEncodeURL state="False"/>
+          <SelectAll state="True"/>
+          <VerifySSLCertificates state="False"/>
+          <Calculation>$Base64_URL</Calculation>
+          <Field table="RC2FM_ATTACHMENTS" id="10" name="rawBase64"/>
+        </Step>
+        <Step enable="True" id="17" name="Go to Field">
+          <SelectAll state="True"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$Hosted_On_Server = 1 and LeftWords ( Get ( ApplicationVersion ) ; 1 ) ≠ "Server" //not PlatformServer</Calculation>
+        </Step>
+        <Step enable="True" id="164" name="Perform Script on Server">
+          <WaitForCompletion state="False"/>
+          <Calculation>RC2FM_LOGS::_kpn_log_id</Calculation>
+          <Script id="177" name="RC2FM__Operation__Decode_Binary ( param )"/>
+        </Step>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Execute record creation loop script locally if not possible on server</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>RC2FM_LOGS::_kpn_log_id</Calculation>
+          <Script id="177" name="RC2FM__Operation__Decode_Binary ( param )"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+      </Script>
+      <Script includeInMenu="False" runFullAccess="False" id="189" name="RC2FM__Function__Fetch_Recording">
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for live token</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="5" name="RC2FM__Check_Session_Status"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$tokenStatus</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process token test response</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) &amp; not IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="78" name="RC2FM__Login"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$extension )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>$tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Proceed with Fetching Recording</Text>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Fetch Base64 file</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/get_call_attachments.php?auth=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) &amp; If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&amp;extension=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" )  &amp; 
+"&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; 
+"&amp;account_id=" &amp; Base64Encode ( $$account ) &amp; 
+$$rc2fm_session_id &amp; 
+"&amp;attachment_id=" &amp; Base64Encode ( RC2FM_LOGS::recordingid )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$url</Name>
+        </Step>
+        <Step enable="True" id="86" name="Set Error Capture">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="160" name="Insert from URL">
+          <NoInteract state="True"/>
+          <DontEncodeURL state="False"/>
+          <SelectAll state="True"/>
+          <VerifySSLCertificates state="False"/>
+          <Calculation>$url</Calculation>
+          <Field table="RC2FM_LOGS" id="38" name="recordingurl"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Get ( LastError ) ≠ 0</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>trim spaces</Text>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>TrimAll ( RC2FM_LOGS::recordingurl ; 1 ; 3 )</Calculation>
+          <Field table="RC2FM_LOGS" id="38" name="recordingurl"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test if scripts can be executed on Server ( PSoS )</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="171" name="Subscript__Validate_Server_Version_≥13"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$Hosted_On_Server</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>not IsEmpty ( RC2FM_LOGS::recordingurl ) and IsEmpty ( RC2FM_ATTACHMENTS::rawBase64 )</Calculation>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>capture Base64 path</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>GetField ( $$messageLogTo &amp; "recordingurl" )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$Base64_URL</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Insert Base64 raw data</Text>
+        </Step>
+        <Step enable="True" id="79" name="Freeze Window"/>
+        <Step enable="True" id="160" name="Insert from URL">
+          <NoInteract state="True"/>
+          <DontEncodeURL state="False"/>
+          <SelectAll state="True"/>
+          <VerifySSLCertificates state="False"/>
+          <Calculation>$Base64_URL</Calculation>
+          <Field table="RC2FM_ATTACHMENTS" id="10" name="rawBase64"/>
+        </Step>
+        <Step enable="True" id="17" name="Go to Field">
+          <SelectAll state="True"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$Hosted_On_Server = 1 and LeftWords ( Get ( ApplicationVersion ) ; 1 ) ≠ "Server" //not PlatformServer</Calculation>
+        </Step>
+        <Step enable="True" id="164" name="Perform Script on Server">
+          <WaitForCompletion state="False"/>
+          <Calculation>RC2FM_LOGS::_kpn_log_id</Calculation>
+          <Script id="177" name="RC2FM__Operation__Decode_Binary ( param )"/>
+        </Step>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Execute record creation loop script locally if not possible on server</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>RC2FM_LOGS::_kpn_log_id</Calculation>
+          <Script id="177" name="RC2FM__Operation__Decode_Binary ( param )"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+      </Script>
+    </Group>
+    <Script includeInMenu="False" runFullAccess="False" id="147" name="-"/>
+    <Group groupCollapsed="False" includeInMenu="False" id="115" name="Update 'Read' Status">
+      <Script includeInMenu="False" runFullAccess="False" id="143" name="RC2FM__Update_ReadStatus">
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for script parameter</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>958</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptParameter )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$pid</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for live token</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="5" name="RC2FM__Check_Session_Status"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$tokenStatus</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process token test response</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) &amp; not IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="78" name="RC2FM__Login"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $$extension )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>$tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>"No active session and no user credentials"</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Proceed with updating log entry 'Read' status </Text>
+        </Step>
+        <Step enable="True" id="79" name="Freeze Window"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>RC2FM_SETTINGS::RC2FM_BaseURL &amp; "/readstatus.php?auth=" &amp; 
+Base64Encode ( RC2FM_GLOBALS::RC_User_Name )  &amp; 
+"&amp;user_id=" &amp; Base64Encode ( $$extension ) &amp; 
+"&amp;account_id=" &amp; Base64Encode ( $$account ) 
+&amp; $$rc2fm_session_id &amp; 
+"&amp;pid=" &amp; Base64Encode ( $pid ) 
+
+//pid example: Base64Encode ( RC2FM_LOGS::id )*/</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$url</Name>
+        </Step>
+        <Step enable="True" id="160" name="Insert from URL">
+          <NoInteract state="True"/>
+          <DontEncodeURL state="False"/>
+          <SelectAll state="True"/>
+          <VerifySSLCertificates state="True"/>
+          <Calculation>$url</Calculation>
+          <Field table="RC2FM_GLOBALS" id="16" name="API_Response__RC_Reply"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>PatternCount ( RC2FM_GLOBALS::API_Response__RC_Reply ; "true" )</Calculation>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>"Read"</Calculation>
+          <Field table="RC2FM_LOGS" id="22" name="readStatus"/>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>Get ( CurrentHostTimestamp )</Calculation>
+          <Script id="188" name="RC2FM__Utility__Convert_Timestamp_to_UNIX ( param )"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$unixTime</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Length ( $unixTime ) &gt; 11</Calculation>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>$unixTime</Calculation>
+          <Field table="RC2FM_LOGS" id="20" name="lastModifiedTime"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="17" name="Go to Field">
+          <SelectAll state="True"/>
+        </Step>
+      </Script>
+    </Group>
+  </Group>
+  <Script includeInMenu="False" runFullAccess="False" id="98" name="-"/>
+  <Group groupCollapsed="False" includeInMenu="False" id="99" name="RC2FM Data Operations">
+    <Script includeInMenu="False" runFullAccess="False" id="201" name="-"/>
+    <Group groupCollapsed="False" includeInMenu="False" id="178" name="Call/Message/Recordings Log Operations">
+      <Script includeInMenu="False" runFullAccess="False" id="135" name="RC2FM__Operation__Parse_MessageLog">
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>perform parsing operations</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>TrimAll ( RC2FM_GLOBALS::API_Response__RC_download_log ; 1 ; 0 )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$splitResponse</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Substitute ( $splitResponse ; 
+    [Char ( "10" ); "&lt;CR&gt;"]; 
+    [Char ( "13" ); "&lt;CR&gt;"]; 
+    [Char ( "¶" ); "&lt;CR&gt;"]
+)</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$splitResponse</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Substitute ( $splitResponse ; "|||" ; ¶ )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$splitResponse</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>test for data</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Substitute ( TrimAll ( $splitResponse ; 1 ; 3 ) ; [ ¶ ; "" ] ; [ "&lt;CR&gt;" ; "" ] ; [ " " ; "" ] )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$responseTest</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( $responseTest )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>10</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>count number of records in parsed data donwload</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>ValueCount ( $splitResponse )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$responseCount</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test if scripts can be executed on Server ( PSoS )</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Script id="171" name="Subscript__Validate_Server_Version_≥13"/>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptResult )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$Hosted_On_Server</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Begin log record creation from parsed data download</Text>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$Hosted_On_Server = 1 and LeftWords ( Get ( ApplicationVersion ) ; 1 ) ≠ "Server" //not PlatformServer</Calculation>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Execute record creation loop script on server when possible</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$responseCount &gt; 650</Calculation>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>If data file exceeds script parameter limits, chop data into chunks of 560 records and process in a loop until all records have been submitted</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Ceiling ( $responseCount / 560 )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$dataChunks</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>1</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$loopCounter</Name>
+        </Step>
+        <Step enable="True" id="71" name="Loop"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>determine starting and ending records in script payload</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>If ( $loopCounter = 1 ; 1 ; ( $loopCounter - 1 ) * 560 + 1 )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$startingValue</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$responseCount - ( If ( $loopCounter = 1 ; 560 ; ( $loopCounter - 1 ) * 560 + 1 )  )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$dataChunkCount</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>If ( $dataChunkCount &lt; 560 ;  $dataChunkCount + 1 ; 560 )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$numberOfValues</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>MiddleValues ( 
+
+//text
+$splitResponse ; 
+
+//startingValue
+$startingValue ;
+
+//numberOfValues
+$numberOfValues
+  
+
+) //end MiddleValues</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$a_dataChunk</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>give the FM Server's FMSE a breather every 4 payloads by inserting a script pause after every 4 PSoS calls</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Mod ( $loopCounter ; 5 ) = 0</Calculation>
+        </Step>
+        <Step enable="True" id="62" name="Pause/Resume Script">
+          <PauseTime value="ForDuration"/>
+          <Calculation>1.1</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>submit data payload as parameter to server-side script</Text>
+        </Step>
+        <Step enable="True" id="164" name="Perform Script on Server">
+          <WaitForCompletion state="False"/>
+          <Calculation>$$extension &amp; ¶ &amp; $a_dataChunk</Calculation>
+          <Script id="167" name="RC2FM__Operation__Create_MessagLog_Records ( param )"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$loopCounter + 1</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$loopCounter</Name>
+        </Step>
+        <Step enable="True" id="72" name="Exit Loop If">
+          <Calculation>$loopCounter &gt; $dataChunks</Calculation>
+        </Step>
+        <Step enable="True" id="73" name="End Loop"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>If data file is within script parameter limits, process entire data file in a single server-side script call</Text>
+        </Step>
+        <Step enable="True" id="164" name="Perform Script on Server">
+          <WaitForCompletion state="False"/>
+          <Calculation>$$extension &amp; ¶ &amp; $splitResponse</Calculation>
+          <Script id="167" name="RC2FM__Operation__Create_MessagLog_Records ( param )"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Execute record creation loop script locally if not possible on server</Text>
+        </Step>
+        <Step enable="True" id="1" name="Perform Script">
+          <Calculation>$splitResponse</Calculation>
+          <Script id="167" name="RC2FM__Operation__Create_MessagLog_Records ( param )"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+      </Script>
+      <Script includeInMenu="False" runFullAccess="False" id="167" name="RC2FM__Operation__Create_MessagLog_Records ( param )">
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for script parameter</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>958</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptParameter )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$splitResponse</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>LeftWords ( Get ( ApplicationVersion ) ; 1 ) = "Server" //PlatformServer</Calculation>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>LeftValues ( Get ( ScriptParameter ) ; 1 )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$$extension</Name>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>LeftWords ( Get ( ApplicationVersion ) ; 1 ) ≠ "Server" //not PlatformServer</Calculation>
+        </Step>
+        <Step enable="True" id="79" name="Freeze Window"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="6" name="Go to Layout">
+          <LayoutDestination value="LayoutNameByCalc"/>
+          <Layout id="0" name="">
+            <Calculation>$$messageLogLayout</Calculation>
+          </Layout>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>ValueCount ( $splitResponse )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$responseCount</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>1</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$LoopCounter</Name>
+        </Step>
+        <Step enable="True" id="71" name="Loop"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>GetValue ( $splitResponse ; $LoopCounter )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$a_response</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Position ( $a_response ; "id=" ; 1 ; 1 )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$positionTest</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Middle ( $a_response ; $positionTest ; Length ( $a_response ) )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$trimmedResponse</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Substitute ( $trimmedResponse ; 
+
+[ "&amp;action=" ; "¶action=" ] ; 
+
+[ "&amp;attachmentmessageStatus=" ; "¶attachmentmessageStatus=" ] ;
+
+[ "&amp;attachment_id=" ; "¶attachment_id=" ] ;
+
+[ "&amp;attachmenturl=" ; "¶attachmenturl=" ] ;
+
+[ "&amp;attachmentvmDuration=" ; "¶attachmentvmDuration=" ] ;
+
+[ "&amp;contentType=" ; "¶ContentType=" ] ;
+
+[ "&amp;conversationId=" ; "¶conversationId=" ] ;
+
+[ "&amp;conversation=" ; "¶conversation=" ] ;
+
+[ "&amp;coverIndex=" ; "¶coverIndex=" ] ;
+
+[ "&amp;coverPageText=" ; "¶coverPageText=" ] ;
+
+[ "&amp;creationTime=" ; "¶creationTime=" ] ;
+
+[ "&amp;direction=" ; "¶direction=" ] ;
+
+[ "&amp;duration=" ; "¶duration=" ] ;
+
+[ "&amp;faxPageCount=" ; "¶faxPageCount=" ] ;
+
+[ "&amp;faxResolution=" ; "¶faxResolution=" ] ;
+
+[ "&amp;fromname=" ; "¶fromname=" ] ;
+
+[ "&amp;fromlocation=" ; "¶fromlocation=" ] ;
+
+[ "&amp;fromphoneNumber=" ; "¶fromphoneNumber=" ] ;
+
+[ "&amp;id=" ; "¶id=" ] ;
+
+[ "&amp;lastModifiedTime=" ; "¶lastModifiedTime=" ] ;
+
+[ "&amp;messageStatus=" ; "¶messageStatus=" ] ;
+
+[ "&amp;priority=" ; "¶priority=" ] ;
+
+[ "&amp;readStatus=" ; "¶readStatus=" ] ;
+
+[ "&amp;recordingid=" ; "¶recordingid=" ] ;
+
+[ "&amp;recordingtype=" ; "¶recordingtype=" ] ;
+
+[ "&amp;recordingurl=" ; "¶recordingurl=" ] ;
+
+[ "&amp;result=" ; "¶result=" ] ;
+
+[ "&amp;sessionId=" ; "¶sessionId=" ] ;
+
+[ "&amp;startTime=" ; "¶startTime=" ] ;
+
+[ "&amp;subject=" ; "¶subject=" ] ;
+
+[ "&amp;tolocation=" ; "¶tolocation=" ] ;
+
+[ "&amp;toname=" ; "¶toname=" ] ;
+
+[ "&amp;tophoneNumber=" ; "¶tophoneNumber=" ] ;
+
+[ "&amp;type=" ; "¶type=" ]
+
+)</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$parsed_trimmedResponse</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>ValueCount ( $parsed_trimmedResponse )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$responseValueCount</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>1</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$subLoop_Counter</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>begin record creation</Text>
+        </Step>
+        <Step enable="True" id="7" name="New Record/Request"/>
+        <Step enable="True" id="71" name="Loop"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>GetValue ( $parsed_trimmedResponse ; $subLoop_Counter )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$a_value</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>ValueCount ( Substitute ( $a_value ; "=" ; ¶ ) ) &lt; 2</Calculation>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$subLoop_Counter + 1</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$subLoop_Counter</Name>
+        </Step>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>$a_value = "¶" or $a_avalue = " ¶" or $a_value = " " or IsEmpty ( $a_value )</Calculation>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$subLoop_Counter + 1</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$subLoop_Counter</Name>
+        </Step>
+        <Step enable="True" id="69" name="Else"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>LeftValues ( Substitute ( $a_value ; "=" ; ¶ ) ; 1 )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fieldName</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$$messageLogTO &amp; Substitute ( $fieldName ; ¶ ;  "" )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fieldName</Name>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>RightValues ( Substitute ( $a_value ; "=" ; ¶ ) ; ValueCount ( $a_value - 1 ) )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fieldValue</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>not IsEmpty ( $fieldValue )</Calculation>
+        </Step>
+        <Step enable="True" id="147" name="Set Field By Name">
+          <Result>
+            <Calculation>Left ( $fieldValue ; Length ( $fieldValue ) - 1 )</Calculation>
+          </Result>
+          <TargetName>
+            <Calculation>$fieldName</Calculation>
+          </TargetName>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>populate call recording 'ContentType' field (data not provided in download)</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>not IsEmpty ( GetField ( $$messageLogTO &amp; "recordingid" ) )</Calculation>
+        </Step>
+        <Step enable="True" id="147" name="Set Field By Name">
+          <Result>
+            <Calculation>"audio/mpeg"</Calculation>
+          </Result>
+          <TargetName>
+            <Calculation>$$messageLogTO &amp; "ContentType"</Calculation>
+          </TargetName>
+        </Step>
+        <Step enable="True" id="147" name="Set Field By Name">
+          <Result>
+            <Calculation>GetField ( $$messageLogTO &amp; "startTime" )</Calculation>
+          </Result>
+          <TargetName>
+            <Calculation>$$messageLogTO &amp; "creationTime"</Calculation>
+          </TargetName>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$subLoop_Counter + 1</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$subLoop_Counter</Name>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="72" name="Exit Loop If">
+          <Calculation>$subLoop_Counter &gt; $responseValueCount</Calculation>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="73" name="End Loop"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>delete empty record</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( GetField ( $$messageLogTO &amp; "creationTime" ) ) and IsEmpty ( GetField ( $$messageLogTO &amp; "id" ) )</Calculation>
+        </Step>
+        <Step enable="True" id="9" name="Delete Record/Request">
+          <NoInteract state="True"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>$LoopCounter + 1</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$LoopCounter</Name>
+        </Step>
+        <Step enable="True" id="72" name="Exit Loop If">
+          <Calculation>$LoopCounter &gt; $responseCount</Calculation>
+        </Step>
+        <Step enable="True" id="73" name="End Loop"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>not LeftWords ( Get ( ApplicationVersion ) ; 1 ) ≠ "Server" //not PlatformServer</Calculation>
+        </Step>
+        <Step enable="True" id="6" name="Go to Layout">
+          <LayoutDestination value="OriginalLayout"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+      </Script>
+    </Group>
+    <Script includeInMenu="False" runFullAccess="False" id="182" name="-"/>
+    <Group groupCollapsed="False" includeInMenu="False" id="180" name="Binary Operations">
+      <Script includeInMenu="False" runFullAccess="False" id="177" name="RC2FM__Operation__Decode_Binary ( param )">
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Test for script parameter</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>958</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>Get ( ScriptParameter )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$recordID</Name>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Determine if search needs to be performed or record is already current</Text>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>LeftWords ( Get ( ApplicationVersion ) ; 1 ) = "Server" 
+or
+Get ( LayoutName ) ≠ $$messageLogLayout 
+or
+Get ( LayoutName ) = $$messageLogLayout and RC2FM_LOGS::_kpn_log_id ≠ $recordID
+or
+LeftWords ( Get ( ApplicationVersion ) ; 1 ) = "Server" //PlatformServer</Calculation>
+        </Step>
+        <Step enable="True" id="6" name="Go to Layout">
+          <LayoutDestination value="LayoutNameByCalc"/>
+          <Layout id="0" name="">
+            <Calculation>$$messageLogLayout</Calculation>
+          </Layout>
+        </Step>
+        <Step enable="True" id="22" name="Enter Find Mode">
+          <Pause state="False"/>
+          <Restore state="False"/>
+        </Step>
+        <Step enable="True" id="76" name="Set Field">
+          <Calculation>"==" &amp; $recordID</Calculation>
+          <Field table="RC2FM_LOGS" id="3" name="_kpn_log_id"/>
+        </Step>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="86" name="Set Error Capture">
+          <Set state="True"/>
+        </Step>
+        <Step enable="True" id="28" name="Perform Find">
+          <Restore state="False"/>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>Get ( LastError ) ≠ 0 or Get ( FoundCount ) ≠ 1</Calculation>
+        </Step>
+        <Step enable="True" id="103" name="Exit Script">
+          <Calculation>401</Calculation>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="89" name="# (comment)">
+          <Text>Process (decode) attachment</Text>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>GetField ( $$messageLogTO &amp; "ContentType" )</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$contentType</Name>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>not IsEmpty ( $$attachmentsTO &amp; "rawBase64" )</Calculation>
+        </Step>
+        <Step enable="True" id="68" name="If">
+          <Calculation>$contentType = "application/pdf"</Calculation>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>GetField ( $$messageLogTO &amp; "id" ) &amp; ".pdf"</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fileNameWithExtension</Name>
+        </Step>
+        <Step enable="True" id="147" name="Set Field By Name">
+          <Result>
+            <Calculation>Base64Decode ( GetField ( $$attachmentsTO &amp; "rawBase64" ) ; $fileNameWithExtension )</Calculation>
+          </Result>
+          <TargetName>
+            <Calculation>$$attachmentsTO &amp; "binary"</Calculation>
+          </TargetName>
+        </Step>
+        <Step enable="True" id="125" name="Else If">
+          <Calculation>GetField ( $$messageLogTO &amp; "type" ) = "VoiceMail" or not IsEmpty ( GetField ( $$messageLogTO &amp; "recordingid" ) )</Calculation>
+        </Step>
+        <Step enable="True" id="141" name="Set Variable">
+          <Value>
+            <Calculation>GetField ( $$messageLogTO &amp; "id" ) &amp; ".mp3"</Calculation>
+          </Value>
+          <Repetition>
+            <Calculation>1</Calculation>
+          </Repetition>
+          <Name>$fileNameWithExtension</Name>
+        </Step>
+        <Step enable="True" id="147" name="Set Field By Name">
+          <Result>
+            <Calculation>Base64Decode ( GetField ( $$attachmentsTO &amp; "rawBase64" ) ; $fileNameWithExtension )</Calculation>
+          </Result>
+          <TargetName>
+            <Calculation>$$attachmentsTO &amp; "binary"</Calculation>
+          </TargetName>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="70" name="End If"/>
+        <Step enable="True" id="89" name="# (comment)"/>
+        <Step enable="True" id="68" name="If">
+          <Calculation>LeftWords ( Get ( ApplicationVersion ) ; 1 ) ≠ "Server" //PlatformServer</Calculation>
+        </Step>
+        <Step enable="True" id="6" name="Go to Layout">
+          <LayoutDestination value="OriginalLayout"/>
+        </Step>
+        <Step enable="True" id="70" name="End If"/>
+      </Script>
+    </Group>
+  </Group>
+  <Script includeInMenu="False" runFullAccess="False" id="101" name="-"/>
+  <Group groupCollapsed="False" includeInMenu="False" id="85" name="RC2FM Utility Scripts">
+    <Script includeInMenu="False" runFullAccess="False" id="210" name="Subscript__Get_Quoted_Field_Name ( param )">
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>958</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$fieldRef</Name>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>Let( [
+
+	_fieldRef = If( PatternCount( $fieldRef ; "::" ) = 0 ; GetFieldName( $fieldRef ) ; $fieldRef ) ;
+
+	_split = Substitute ( _fieldref ; "::"; "¶") ;
+
+	_field = GetValue( _split ; 2 )
+
+	];
+
+
+	Quote( _field )
+
+)
+
+
+/*2013-11-26  Wim Decorte
+parses a field reference a returns a quoted Field name
+( original function name: "_FieldRef_getField")*/</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="212" name="Subscript__Get_Quoted_Table_Occurrence_Name ( param )">
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>958</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$fieldRef</Name>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>Let( [
+
+	_fieldRef = If( PatternCount( $fieldRef ; "::" ) = 0 ; GetFieldName( $fieldRef ) ; $fieldRef ) ;
+
+	_split = Substitute ( _fieldref ; "::"; "¶") ;	
+
+	_field = GetValue( _split ; 1 )
+
+	];
+
+	_field
+
+)
+
+/*2013-11-26  Wim Decorte
+parses a field reference a returns a quoted TO name
+( original function name: "_FieldRef_getTO")*/</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="211" name="-"/>
+    <Script includeInMenu="False" runFullAccess="False" id="121" name="RC2FM__Utility__Cleanup_FileName ( param )">
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Test for script parameter</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>958</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$fileName</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>remove special characters from file name</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Let ( [ 
+
+	FileName = $fileName ;
+
+	ParsedName = Substitute ( FileName ; "." ; ¶ ) ;
+
+	FileExtension = "." &amp; RightValues ( ParsedName ; 1 ) ;
+
+	MinusExtension = Left ( FileName ; ( Length ( FileName ) - Length ( FileExtension ) + 1 ) ) ;
+
+	CleanName = Substitute ( MinusExtension ; [¶ ; "_"] ; [Char ( "10" ) ; "_"] ; [Char ( "13" ) ; "_"] ; [ "." ; "_"] ; [ " " ; "_" ] ; [ ","; "_" ] ; [ "/" ; "_"] ; [":" ; "_" ] ; [ "&amp;" ; "_and_" ] ; [ "#" ; "_"] ; [ "%" ; "_"] ; [ "@" ; "_" ] ; [ "*" ; ""] ) 
+
+] ; 
+
+//calculation
+Substitute ( CleanName &amp; FileExtension ; ¶ ; "" )
+
+) // end Let</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$cleaned_name</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>$cleaned_name</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="188" name="RC2FM__Utility__Convert_Timestamp_to_UNIX ( param )">
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Test for script parameter</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>958</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$timestamp</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Parse timestamp parameter into date and time variables</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Date ( Month ( $timestamp ) ; Day ( $timestamp ) ; Year ( $timestamp ) )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$_date</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Time ( Hour ( $timestamp ) ; Minute ( $timestamp ) ; Seconds ( $timestamp ) )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$_time</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>remove special characters from file name</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Let([
+
+//	_date= Date ( 8 ; 4 ; 2013 );
+//	_time= time ( 8 ; 4 ; 3 );
+	
+	year = Year ( $_date );
+	month = Right ( "0" &amp; Month ( $_date ) ; 2 );
+	day = Right ( "0" &amp; Day ( $_date ) ; 2 );
+	
+	hour = Right ( "0" &amp; Hour ( $_time ) ; 2 );
+	min = Right ( "0" &amp; Minute ( $_time ) ; 2 );
+	sec = Right ( "0" &amp; Seconds ( $_time ) ; 2 )
+
+];
+
+
+If ( not IsEmpty ($_date) ;
+	year &amp; "-" &amp; month &amp; "-" &amp; day &amp;
+	If ( not IsEmpty ($_time) ;
+		"T" &amp; hour &amp; ":" &amp; min &amp; ":" &amp; If ( not IsEmpty ( sec ) ; sec ; "00" ) &amp; ".000Z" 
+		//Time calc modifications by Automation USA (www.automationusa.com/custom-app-development)
+	)
+)
+
+
+)
+
+/* 
+--------------------------
+La Source multimédia
+12/2013
+
+	FM2UnixTimeStamp ( _date ; _time )
+
+Returns a Unix TimeStamp: yyyy-mm-dd{ hh:mm:ss}
+
+$_date: FileMaker date
+$_time: FileMaker time
+
+--------------------------
+*/</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$unix_timestamp</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>$unix_timestamp</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="81" name="RC2FM__Utility__Parse_CalerIDs (rawJSON)">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Extracts available company phone numbers (caller ID choices) from Login API response and store them as global variables</Text>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Test for script parameter</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>958</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Trim and parse JSON</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>TrimAll ( Get ( ScriptParameter ) ; 1 ; 2 )
+
+//TrimAll ( RC2FM_GLOBALS::API_Response__Auth; 1 ; 2 )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$rawJSON</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Substitute ( $rawJSON ; [ ","; ¶ ] ; [ "{" ; ""] ; ["}" ; "" ] ; [ "\"" ; ""] ; [ "+" ; "" ] )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$trimmedValues</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>ValueCount ( $trimmedValues )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$NumbersCount</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Loop thru JSON values and initilize global variables</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>1</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$LoopCounter</Name>
+      </Step>
+      <Step enable="True" id="71" name="Loop"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>GetValue ( $trimmedValues ; $LoopCounter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$aNumber</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Let ( [ 
+		
+		splitPair = Substitute ( $aNumber ; ":" ; ¶ ) ;
+
+		$theLabel = LeftValues ( splitPair ; 1 ) ; 
+
+		$theNumber = RightValues ( splitPair ; 1 ) ] ; 
+
+		//calculation
+		Evaluate ( "Let ( [ $$" &amp; $theLabel &amp; " = " &amp; $theNumber &amp; " ] ; \"\" )" )
+
+
+ ) //end Let</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$declarations</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>$LoopCounter + 1</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$LoopCounter</Name>
+      </Step>
+      <Step enable="True" id="72" name="Exit Loop If">
+        <Calculation>$LoopCounter &gt; $NumbersCount</Calculation>
+      </Step>
+      <Step enable="True" id="73" name="End Loop"/>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="168" name="-"/>
+    <Script includeInMenu="False" runFullAccess="False" id="171" name="Subscript__Validate_Server_Version_≥13">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Name:
+Subscript__Validate_Server_Version_≥13
+
+History:
+Created by Automation USA - Julio
+Last Modified: 4-3-2014
+
+Purpose:
+Validates that file is hosted on a server, opened on a client,and that the server can execute remote procedures (Perform Script of Nserver)
+
+Parameters:
+None
+
+Important Notes:
+None</Text>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="68" name="If">
+        <Calculation>PatternCount ( Get ( ApplicationVersion );  "Server" )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>False</Calculation>
+      </Step>
+      <Step enable="True" id="125" name="Else If">
+        <Calculation>Get ( ConnectionState ) = 0</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>False</Calculation>
+      </Step>
+      <Step enable="True" id="125" name="Else If">
+        <Calculation>not PatternCount ( Get ( HostApplicationVersion ) ; "Server" )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>False</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="1" name="Perform Script">
+        <Calculation> Get ( HostApplicationVersion )</Calculation>
+        <Script id="170" name="Subscript__Check_App_Version ( param )"/>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptResult )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$VersionNumber</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="68" name="If">
+        <Calculation>$VersionNumber ≥ 13</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>True</Calculation>
+      </Step>
+      <Step enable="True" id="69" name="Else"/>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>False</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="170" name="Subscript__Check_App_Version ( param )">
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>958</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$AppName</Name>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>Let ( [ NumberString = RightWords ( $AppName ; 1 )  ] ; GetAsNumber ( Int ( NumberString) ) )
+
+//Parses "Get ( ApplicationVersion )" function to return version number interger ( only )
+//Written by Julio Toledo, Automation USA, LLC 8/7/2014
+//http://www.automationusa.net</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="172" name="-"/>
+    <Script includeInMenu="False" runFullAccess="False" id="123" name="Subscript__DeclareVariables ( param )">
+      <Step enable="False" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="False" id="103" name="Exit Script">
+        <Calculation>958</Calculation>
+      </Step>
+      <Step enable="False" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>"fileName: " &amp; "MyFileName" &amp; "; " &amp; "mimeType: " &amp; "audio/mpeg" &amp; "; "
+
+//Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$param</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>ValueCount ( Substitute ( $param ; "; " ; ¶ ) )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$param_count</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>1</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$LoopCounter</Name>
+      </Step>
+      <Step enable="True" id="71" name="Loop"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>$LoopCounter + 1</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$LoopCounter</Name>
+      </Step>
+      <Step enable="True" id="72" name="Exit Loop If">
+        <Calculation>$LoopCounter &gt; $param_count</Calculation>
+      </Step>
+      <Step enable="True" id="73" name="End Loop"/>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>Case(
+  not IsEmpty( $param );
+  Let(
+    [
+      kN = Substitute($param; [¶; ""]; [" "; ""]; [";"; ""]);
+      kF = Left(kN; 1);
+      kL = Right(kN; 1);
+      k1 = Position($param; kF; 1; 1);
+      k2 = Position($param; kL; Length($param); -1);
+      kP = Middle($param; k1; k2 - k1 + 1);
+      pS = Substitute(kP; [":¶"; ": "]; [";¶"; "; "]; [¶; "\¶"]);
+      p1 = Position(pS &amp; " "; ": "; 1; 1) + 2;
+      q1 = Left(Trim(Middle(pS; p1; Length(pS) - p1 - 1)); 1);
+      s1 = q1 = "\"";
+      t2 = Choose(s1; "; "; "\"; ");
+      q2 = Left("\""; 1 - s1);
+      p2 = Position(pS &amp; t2; t2; 1; 1);
+      n1 = Left(pS; p1 - 3);
+      c1 = Trim(Middle(pS; p1; p2 - p1 + s1));
+      v1 = Evaluate("Let($$" &amp; n1 &amp; " = " &amp; q2 &amp; c1 &amp; q2 &amp; "; \"\")");
+      r1 = Right(pS; Length(pS) - p2 - 1 - s1)
+    ];
+    DeclareVariables ( Trim(r1) )
+  )
+)</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="1" name="Subscript__Numbers_Only ( param )">
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>10</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$param</Name>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>Filter ( $param ; "0123456789" )</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="7" name="Subscript__phpUnserialize ( param )">
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>958</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$param</Name>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>// s:19:"http://360works.com"; 
+// n:42;
+
+Let (  [ 
+    trimmed = Left ( $param ; Length ( $param ) - 1 ) ; // remove semicolon
+    p1 = Position ( trimmed ; ":" ; 1 ; 1 ) ; // first colon, should always = 2
+    p2 = Position ( trimmed ; ":" ; 1 ; 2) ; // second colon, only for string types
+    type = Left ( trimmed ; p1 -1 ) ;
+    v2 = Middle ( trimmed ; p1 + 1; p2-p1);
+    v3 = Middle ( trimmed ; p2 + 1 ; Length(trimmed) - p2 )
+] ;
+    Case ( 
+        IsEmpty($param) ; // empty input
+            "" ;
+        type = "N" ;  // null
+            "" ;
+        type = "b" ; // boolean
+            GetAsBoolean( v2 ) ;
+        type = "i" ; // integer
+            GetAsNumber( v2 ) ;
+        type = "s" ;
+            Middle ( v3 ; 2 ; v2 ) ;
+        type = "a" ;
+            $param ; // not yet supported
+        type = "O" ;
+            $param ; // not yet supported
+        "Unknown serialize format in " &amp; $param
+    )
+)</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="6" name="Subscript__Remove_LineBreaks ( param )">
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>10</Calculation>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$param</Name>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script">
+        <Calculation>Substitute ( $param ; 
+    [Char ( "10" ); ""]; 
+    [Char ( "13" ); ""]; 
+    [Char ( "¶" ); ""]
+)</Calculation>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="169" name="-"/>
+    <Script includeInMenu="False" runFullAccess="False" id="152" name="Subscritpt__Set_Field_By_Name ( fieldname, fieldvalues )">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Name:
+Subscript__Set_Field_By_Name ( fieldname )
+
+History:
+Created by Automation USA - Julio
+Created: 6-4-2013
+Last Modified: 6-4-2013
+
+Purpose:
+Generic script used to clear a field by name
+
+Parameters:
+Field Name, field contents (return delimited values)
+
+Important Notes:
+None</Text>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="85" name="Allow User Abort">
+        <Set state="False"/>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script"/>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>GetValue ( Get ( ScriptParameter ) ; 1 )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$fieldname</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>RightValues ( Get ( ScriptParameter )  ; ( ValueCount ( Get ( ScriptParameter ) )  - 1 ) )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$fieldvalue</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="147" name="Set Field By Name">
+        <Result>
+          <Calculation>Left ( $fieldvalue ; Length ( $fieldvalue ) - 1 )</Calculation>
+        </Result>
+        <TargetName>
+          <Calculation>$fieldname</Calculation>
+        </TargetName>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="153" name="Subscript__Loop_Clear_Fields_By_Name ( fieldnamesList )">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Name:
+Subscript__Loop_Clear_Fields_By_Name ( fieldnamesList )
+
+History:
+Created by Automation USA - Julio
+Created: 6-4-2013
+
+Purpose:
+Generic script used to clear multiple fields by name
+
+Parameters:
+Field Names (return delimited values)
+
+Important Notes:
+None</Text>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="85" name="Allow User Abort">
+        <Set state="False"/>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Escape if parameter is not supplied</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script"/>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Escape if script trigger global variable flag is set to disabled</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>$$~TRIGGERS_DISABLE
+or $$~DISABLETRIGGERS</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script"/>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Declare local variables</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>ValueCount ( Get ( ScriptParameter )  )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$Count_fieldnamesList</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>Get ( ScriptParameter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$fieldnamesList</Name>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Loop thru field list and clear contents</Text>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>1</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$LoopCounter</Name>
+      </Step>
+      <Step enable="True" id="71" name="Loop"/>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>GetValue ( $fieldnamesList; $LoopCounter )</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$fieldname</Name>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( GetField ( $fieldname ) )</Calculation>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>$LoopCounter + 1</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$LoopCounter</Name>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>$EmptyFields + 1</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$EmptyFields</Name>
+      </Step>
+      <Step enable="True" id="69" name="Else"/>
+      <Step enable="True" id="147" name="Set Field By Name">
+        <Result>
+          <Calculation>""</Calculation>
+        </Result>
+        <TargetName>
+          <Calculation>$fieldname</Calculation>
+        </TargetName>
+      </Step>
+      <Step enable="True" id="141" name="Set Variable">
+        <Value>
+          <Calculation>$LoopCounter + 1</Calculation>
+        </Value>
+        <Repetition>
+          <Calculation>1</Calculation>
+        </Repetition>
+        <Name>$LoopCounter</Name>
+      </Step>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="72" name="Exit Loop If">
+        <Calculation>$LoopCounter &gt; $Count_fieldnamesList</Calculation>
+      </Step>
+      <Step enable="True" id="73" name="End Loop"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="68" name="If">
+        <Calculation>$EmptyFields = $Count_fieldnamesList</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script"/>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="False" id="80" name="Refresh Window">
+        <Option state="True"/>
+        <FlushSQLData state="False"/>
+      </Step>
+    </Script>
+    <Script includeInMenu="False" runFullAccess="False" id="154" name="Subscript__Clear_Field_By_Name_and_Refresh_Window ( fieldname )">
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Name:
+Subscript__Clear_Field_By_Name_and_Refresh_Window ( fieldname )
+
+History:
+Created by Automation USA - Julio
+Created: 6-4-2013
+Last Modified: 7-4-2016
+
+Purpose:
+Generic script used to clear a field by name and refresh the windo
+
+Parameters:
+Field Name
+
+Important Notes:
+Dependency on subscript "Set_Field_By_Name ( fieldname, fieldvalues )"</Text>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="85" name="Allow User Abort">
+        <Set state="False"/>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Escape if parameter is not supplied</Text>
+      </Step>
+      <Step enable="True" id="68" name="If">
+        <Calculation>IsEmpty ( Get ( ScriptParameter ) )</Calculation>
+      </Step>
+      <Step enable="True" id="103" name="Exit Script"/>
+      <Step enable="True" id="70" name="End If"/>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Call set field subscript</Text>
+      </Step>
+      <Step enable="True" id="1" name="Perform Script">
+        <Calculation>Get ( ScriptParameter ) &amp; ¶ &amp; ""</Calculation>
+        <Script id="152" name="Subscritpt__Set_Field_By_Name ( fieldname, fieldvalues )"/>
+      </Step>
+      <Step enable="True" id="89" name="# (comment)"/>
+      <Step enable="True" id="89" name="# (comment)">
+        <Text>Call unlock and refresh window subscript</Text>
+      </Step>
+      <Step enable="True" id="17" name="Go to Field">
+        <SelectAll state="True"/>
+      </Step>
+      <Step enable="True" id="80" name="Refresh Window">
+        <Option state="False"/>
+        <FlushSQLData state="False"/>
+      </Step>
+    </Script>
+  </Group>
+</fmxmlsnippet>
