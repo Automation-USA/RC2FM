@@ -9,6 +9,8 @@ Mac - (http://www.myfmbutler.com/en/products/clip-manager-for-mac/6)
 
 Windows - (http://www.myfmbutler.com/en/products/clip-manager-express-for-windows/3)
 
+To download the demo binary in .fmp12 format, visit our online store at https://store.rc2fm.com and click on "Download free demo file".
+
 For more information about RC2FM Connector, visit our landing page at http://www.rc2fm.com 
 
 or
