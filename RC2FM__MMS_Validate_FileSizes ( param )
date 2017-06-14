@@ -1,0 +1,32 @@
+#Name: RC2FM__MMS_Validate_MIME_Type ( param ) History: Created by Automation USA - Julio Toledo Created: 6-1-2017 Last Modified: 6-3-2017 (added commenting) Purpose: Aggregates the attachment file sizes stored in all repetitions of a given repeating container global field and validates the total against RingCentral's maximum attachment payload restrictions. Parameters: Fully qualified field name Important Notes: Requires a relationship path from the current context back to the field being validated
+If [ IsEmpty ( Get ( ScriptParameter ) ) ]
+	Exit Script [ Result: 958 ]
+End If
+
+Set Variable [ $fieldName; Value:Get ( ScriptParameter ) ]
+
+Set Variable [ $repetitions; Value:Abs ( FieldRepetitions ( Get ( FileName ) ; Get ( LayoutName ) ; $fieldName ) ) ]
+Set Variable [ $LoopCounter; Value:1 ]
+Loop
+	If [ not IsEmpty ( GetRepetition ( GetField ( $fieldName ) ; $LoopCounter ) ) ]
+		Set Variable [ $fileSize; Value: GetContainerAttribute ( GetRepetition ( GetField ( $fieldName ) ; $LoopCounter ) ; "FileSize" ) ]
+		If [ not IsEmpty ( $payloadSize ) ]
+			Set Variable [ $payloadSize; Value:$payloadSize + $fileSize ]
+		Else
+			Set Variable [ $payloadSize; Value:$fileSize ]
+		End If
+	End If
+	Set Variable [ $LoopCounter; Value:$LoopCounter + 1 ]
+	Exit Loop If [ $LoopCounter > $repetitions ]
+End Loop
+
+If [ IsEmpty ( $payloadSize ) ]
+	Exit Script [ Result: True ]
+End If
+
+If [ $payloadSize / 1024 > 1536 ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "{\"error\":511,\"message\":" & "MMS total attachments file size is limited to 1.5 MB" & "}" ]
+	Exit Script [ Result: False ]
+End If
+
+Exit Script [ Result: True ]
