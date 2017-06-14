@@ -1,0 +1,4 @@
+#Name: RC2FM__Subscript_Build_Session_ID History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 5-31-2017 (added commenting) Purpose: Subscript called various RC2FM function and session control scripts. Gathers front-end environment variables required by all RC2FM endpoints Parameters: None Important Notes: None
+
+#Collect environment variables
+Exit Script [ Result: Let ( [ $$rc2fm_session_id = Substitute ( "&persistent_id=" & Base64Encode ( Get ( PersistentID ) ) & "&device=" & Base64Encode ( Get ( Device ) ) & "&platform=" & Base64Encode ( Get ( SystemPlatform ) ) & "&network=" & Base64Encode ( If ( Abs ( Get ( SystemPlatform ) ) = 3 ; Get ( NetworkType ) ; "0" ) ) & "&fm_version=" & Base64Encode ( Get ( ApplicationVersion ) ) & "&user_language=" & Base64Encode ( Get ( ApplicationLanguage ) ); [Char ( "10" ); ""]; [Char ( "13" ); ""]; [Char ( "¶" ); ""] ) //end Substitute ] ; //calculation "" ) //end Let ]
