@@ -1,0 +1,50 @@
+#Name: RC2FM__Update_ReadStatus History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 6-1-2017 (added commenting, error handling/reporting) Purpose: Updates status of a specific call log record by calling RC2FM's "readstatus.php" endpoint with all required authentication and search criteria parameters. Parameters: $pid = Record id as string (contents of field "RC2FM_LOGS::id") $$extension = RingCentral user id (obtained from "RC2FM_Login" during session initiation) $$account = RingCentral account id (obtained from "RC2FM_Login" during session initiation) $$rc2fm_session_id = environment parameters (obtained from "RC2FM_Subscript_Build_Session_ID") RingCentral account credentials (except password): auth = contents of field "RC2FM_GLOBALS::RC_User_Name" extension = RC2FM_GLOBALS::RC_User_ExtNumber (optional) Important Notes: Requires current context to be "RC2FM_LOGS" for access to fields "RC2FM_LOGS::id" and "RC2FM_LOGS::readStatus" Requires a relationship path from the current context back to the RingCentral credentials fields
+
+#Test for modern FileMaker version
+Perform Script [ “Subscript__Validate_Client_Version_≥16” ]
+Set Variable [ $isModern; Value:Get ( ScriptResult ) ]
+
+#Test for script parameter
+If [ IsEmpty ( Get ( ScriptParameter ) ) ]
+	Exit Script [ Result: 958 ]
+End If
+Set Variable [ $pid; Value:Get ( ScriptParameter ) ]
+
+#Test for live token
+Perform Script [ “RC2FM__Check_Session_Status” ]
+Set Variable [ $tokenStatus; Value:Get ( ScriptResult ) ]
+
+#Process token test response
+If [ $tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) & not IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Login” ]
+	If [ IsEmpty ( $$extension ) ]
+		Exit Script [ Result: "No active session and no user credentials" ]
+	End If
+Else If [ $tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Exit Script [ Result: "No active session and no user credentials" ]
+End If
+
+#Proceed with updating log entry 'Read' status
+
+Freeze Window
+If [ $isModern ]
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/readstatus.php" ]
+	Set Variable [ $curl; Value:"-d auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & "&pid=" & Base64Encode ( $pid ) //pid example: Base64Encode ( RC2FM_LOGS::id )*/ ]
+	#Remove line breaks
+	Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $curl ]
+	Set Variable [ $curl; Value:Get ( ScriptResult ) ]
+	Insert from URL [ RC2FM_GLOBALS::API_Response__RC_Reply; $url; cURL options: $curl ] [ Select; No dialog; Verify SSL Certificates ]
+Else
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/readstatus.php?auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & "&pid=" & Base64Encode ( $pid ) //pid example: Base64Encode ( RC2FM_LOGS::id )*/ ]
+	Insert from URL [ RC2FM_GLOBALS::API_Response__RC_Reply; $url ] [ Select; No dialog; Verify SSL Certificates ]
+	End If
+
+	If [ PatternCount ( RC2FM_GLOBALS::API_Response__RC_Reply ; "true" ) ]
+		Set Field [ RC2FM_LOGS::readStatus; "Read" ]
+		Perform Script [ “RC2FM__Utility__Convert_Timestamp_to_UNIX ( param )”; Parameter: Get ( CurrentHostTimestamp ) ]
+		Set Variable [ $unixTime; Value:Get ( ScriptResult ) ]
+		If [ Length ( $unixTime ) > 11 ]
+			Set Field [ RC2FM_LOGS::lastModifiedTime; $unixTime ]
+	End If
+End If
+Go to Field [ ] [ Select/perform ]
