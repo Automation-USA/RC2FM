@@ -1,0 +1,23 @@
+#Name: RC2FM__Subscript__Show_Custom_Dialog ( param ) History: Created by Automation USA - Julio Toledo Created: 5-31-2017 Last Modified: 6-1-2017 (added commenting) Purpose: Utility subscript used to diplay fully dynamic and customizable alerts Parameters: Script Parameter string for the alert message. Other optional parameters include: $$Title (defaults to "Alert") $$DefaultButton (defaults to "OK") $$Button2 (defaults to null) $$Button3 (defaults to null) Important Notes: None
+If [ not IsEmpty ( Get (ScriptParameter ) ) ]
+If [ Abs ( Get ( SystemPlatform ) ) = 3 //Platform mobile ]
+If [ IsEmpty ( $$Button2 ) and IsEmpty ( $$Button3 ) ]
+Show Custom Dialog [ Title: If ( IsEmpty ( $$Title ) ; "Alert" ; $$Title ); Message: Get ( ScriptParameter ), Default Button: If ( IsEmpty ( $$DefaultButton ) ; "OK" ; $$DefaultButton ), Commit: “No” ]
+Else If [ IsEmpty ( $$Button3 ) and not IsEmpty ( $$Button2 ) ]
+Show Custom Dialog [ Title: If ( IsEmpty ( $$Title ) ; "Alert" ; $$Title ); Message: Get ( ScriptParameter ), Default Button: If ( IsEmpty ( $$DefaultButton ) ; "OK" ; $$DefaultButton ), Commit: “No”, Button 2: $$Button2, Commit: “No” ]
+Else If [ IsEmpty ( $$Button2 ) and not IsEmpty ( $$Button3 ) ]
+Show Custom Dialog [ Title: If ( IsEmpty ( $$Title ) ; "Alert" ; $$Title ); Message: Get ( ScriptParameter ), Default Button: If ( IsEmpty ( $$DefaultButton ) ; "OK" ; $$DefaultButton ), Commit: “No”, Button 2: $$Button3, Commit: “No” ]
+Else
+Show Custom Dialog [ Title: If ( IsEmpty ( $$Title ) ; "Alert" ; $$Title ); Message: Get ( ScriptParameter ), Default Button: If ( IsEmpty ( $$DefaultButton ) ; "OK" ; $$DefaultButton ), Commit: “No”, Button 2: If ( IsEmpty ( $$Button2 ) ; "" ; $$Button2 ), Commit: “No”, Button 3: If ( IsEmpty ( $$Button3 ) ; "" ; $$Button3 ), Commit: “No” ]
+End If
+Else
+Show Custom Dialog [ Title: If ( IsEmpty ( $$Title ) ; "Alert" ; $$Title ); Message: Get ( ScriptParameter ), Default Button: If ( IsEmpty ( $$DefaultButton ) ; "OK" ; $$DefaultButton ), Commit: “No”, Button 2: If ( IsEmpty ( $$Button2 ) ; "" ; $$Button2 ), Commit: “No”, Button 3: If ( IsEmpty ( $$Button3 ) ; "" ; $$Button3 ), Commit: “No” ]
+End If
+Set Variable [ $$Title; Value:"" ]
+Set Variable [ $$DefaultButton; Value:"" ]
+Set Variable [ $$Button2; Value:"" ]
+Set Variable [ $$Button3; Value:"" ]
+Go to Field [ ] [ Select/perform ]
+Else
+Exit Script [ Result: 958 ]
+End If
