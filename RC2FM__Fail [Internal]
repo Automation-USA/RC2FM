@@ -1,0 +1,5 @@
+#Name: RC2FM__Fail [Internal] History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 5-31-2017 (renamed script by adding "(param)" suffix, added commenting, added conditional test to show error dialogs) Purpose: Logs internal errors to global field and optionally displays error message to the user. Parameters: Error message string Important Notes: None
+Set Field [ RC2FM_GLOBALS::API_Response__RC_Reply; Get ( ScriptParameter ) ]
+If [ $$showDialogs = True ]
+	Perform Script [ “RC2FM__Subscript__Show_Custom_Dialog ( param )”; Parameter: Let ( [ $$Title = "Error!" ] ; Get ( ScriptParameter ) ) ]
+End If
