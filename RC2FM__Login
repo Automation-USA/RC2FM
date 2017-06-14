@@ -2,8 +2,8 @@
 
 #Gather required credentials
 If [ IsEmpty ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
-Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "RingCentral user account and/or password not provided. RC2FM session not active." ]
-Exit Script [ Result: 213 ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "RingCentral user account and/or password not provided. RC2FM session not active." ]
+	Exit Script [ Result: 213 ]
 End If
 #Gather required environment parameters
 Perform Script [ “RC2FM__Subscript_Build_Session_ID” ]
@@ -14,19 +14,19 @@ Set Variable [ $isModern; Value:Get ( ScriptResult ) ]
 
 #Use cURL method for FM versions 16+
 If [ $isModern ]
-#Compile authentication url
-Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/api/login.php" ]
-Set Variable [ $curl; Value:"-d auth=" & Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) & "&password=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Password ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & $$rc2fm_session_id ]
-#Remove line breaks
-Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $curl ]
-Set Variable [ $curl; Value:Get ( ScriptResult ) ]
-#Submit Login
-Insert from URL [ RC2FM_GLOBALS::API_Response__Auth; $url; cURL options: $curl ] [ Select; No dialog; Verify SSL Certificates ]
+	#Compile authentication url
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/api/login.php" ]
+	Set Variable [ $curl; Value:"-d auth=" & Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) & "&password=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Password ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & $$rc2fm_session_id ]
+	#Remove line breaks
+	Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $curl ]
+	Set Variable [ $curl; Value:Get ( ScriptResult ) ]
+	#Submit Login
+	Insert from URL [ RC2FM_GLOBALS::API_Response__Auth; $url; cURL options: $curl ] [ Select; No dialog; Verify SSL Certificates ]
 Else
-#Compile authentication url
-Set Variable [ $Auth; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/api/login.php?auth=" & Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) & "&password=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Password ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & $$rc2fm_session_id ]
-#Submit Login
-Insert from URL [ RC2FM_GLOBALS::API_Response__Auth; $Auth ] [ Select; No dialog; Verify SSL Certificates ]
+	#Compile authentication url
+	Set Variable [ $Auth; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/api/login.php?auth=" & Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) & "&password=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Password ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & $$rc2fm_session_id ]
+	#Submit Login
+	Insert from URL [ RC2FM_GLOBALS::API_Response__Auth; $Auth ] [ Select; No dialog; Verify SSL Certificates ]
 End If
 
 #unlock record
@@ -34,15 +34,15 @@ Go to Field [ ] [ Select/perform ]
 
 #process api response
 If [ PatternCount ( RC2FM_GLOBALS::API_Response__Auth ; "success" ) ]
-Set Variable [ $$errorMessage; Value:"" ]
-Set Variable [ $loginResponse; Value:TrimAll ( RC2FM_GLOBALS::API_Response__Auth ; 1 ; 2 ) ]
-Perform Script [ “RC2FM__Utility__Parse_CallerIDs (rawJSON)”; Parameter: $loginResponse ]
-Perform Script [ “RC2FM__Subscript_Store_CallerIDs” ]
-Exit Script [ Result: True ]
-
+	Set Variable [ $$errorMessage; Value:"" ]
+	Set Variable [ $loginResponse; Value:TrimAll ( RC2FM_GLOBALS::API_Response__Auth ; 1 ; 2 ) ]
+	Perform Script [ “RC2FM__Utility__Parse_CallerIDs (rawJSON)”; Parameter: $loginResponse ]
+	Perform Script [ “RC2FM__Subscript_Store_CallerIDs” ]
+	Exit Script [ Result: True ]
+	
 Else If [ PatternCount ( RC2FM_GLOBALS::API_Response__Auth ; "error" ) ]
-Set Variable [ $errorMessage; Value:"Login error, check credentials and try again." ]
-Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: $errorMessage ]
-Exit Script [ Result: False ]
+	Set Variable [ $errorMessage; Value:"Login error, check credentials and try again." ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: $errorMessage ]
+	Exit Script [ Result: False ]
 End If
 
