@@ -1,0 +1,35 @@
+#Name: RC2FM__Operation__Decode_Binary ( param ) History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 6-1-2017 (added commenting) Purpose: Performs a search for the specified FileMaker record, decodes Base64 attachment data stored in a FileMaker text field and inserts the binary output into a FileMaker container field. Parameters: $recordID = FileMaker primary key field for a record in the "RC2FM_LOGS" table Important Notes: Requires a relationship path from the current context back to the RingCentral credentials fields $$attachment_id is required when $$attachment_type = "MMSAttachment"
+#Test for script parameter
+If [ IsEmpty ( Get ( ScriptParameter ) ) ]
+	Exit Script [ Result: 958 ]
+End If
+Set Variable [ $recordID; Value:Get ( ScriptParameter ) ]
+
+#Determine if search needs to be performed or record is already current
+	If [ LeftWords ( Get ( ApplicationVersion ) ; 1 ) = "Server" or Get ( LayoutName ) ≠ $$messageLogLayout or Get ( LayoutName ) = $$messageLogLayout and RC2FM_LOGS::_kpn_log_id ≠ $recordID or LeftWords ( Get ( ApplicationVersion ) ; 1 ) = "Server" //PlatformServer ]
+	Go to Layout [ $$messageLogLayout ]
+	Enter Find Mode [ ]
+	Set Field [ RC2FM_LOGS::_kpn_log_id; "==" & $recordID ]
+
+	Set Error Capture [ On ]
+	Perform Find [ ]
+	If [ Get ( LastError ) ≠ 0 or Get ( FoundCount ) ≠ 1 ]
+		Exit Script [ Result: 401 ]
+	End If
+End If
+
+#Process (decode) attachment
+If [ not IsEmpty ( $$attachmentsTO & "rawBase64" ) ]
+	Set Variable [ $mimeType; Value:If ( not IsEmpty ( GetField ( $$messageLogTO & "attachmentType" ) ) ; GetField ( $$messageLogTO & "attachmentType" ) ; GetField ( $$messageLogTO & "ContentType" ) ) ]
+	Perform Script [ “RC2FM__Utility__Convert_MIME_Type_to_Extension ( param )”; Parameter: $mimeType ]
+	Set Variable [ $fileExtension; Value:Get ( ScriptResult ) ]
+	If [ $fileExtension = "417" ]
+		Exit Script [ Result: 11 ]
+	End If
+	Set Variable [ $fileNameWithExtension; Value:GetField ( $$messageLogTO & "id" ) & $fileExtension ]
+	Set Field By Name [ $$attachmentsTO & "binary"; Base64Decode ( GetField ( $$attachmentsTO & "rawBase64" ) ; $fileNameWithExtension ) ]
+End If
+
+If [ LeftWords ( Get ( ApplicationVersion ) ; 1 ) ≠ "Server" //PlatformServer ]
+	Go to Layout [ original layout ]
+End If
