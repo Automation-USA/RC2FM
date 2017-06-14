@@ -1,0 +1,16 @@
+
+
+#Test for script parameter
+If [ IsEmpty ( Get ( ScriptParameter ) ) ]
+	Exit Script [ Result: 958 ]
+End If
+Set Variable [ $timestamp; Value:Get ( ScriptParameter ) ]
+
+#Parse timestamp parameter into date and time variables
+Set Variable [ $_date; Value:Let([ //	$timeStamp = "2013-10-04T12:13:15"; _year = Left ( $timestamp ; 4 ); _month = Middle ( $timestamp ; 6 ; 2 ); _day = Middle ( $timestamp ; 9 ; 2 ) ]; Date ( _month ; _day ; _year ) ) ]
+Set Variable [ $_time; Value:Let([ //	$timeStamp = "2013-10-04 12:13:15"; _hour = Middle ( $timeStamp ; 12 ; 2 ); _min = Middle ( $timeStamp ; 15 ; 2 ); _sec = Middle ( $timeStamp ; 18 ; 2 ) ]; Time ( _hour ; _min ; _sec ) ) ]
+
+#remove special characters from file name
+Set Variable [ $fm_timestamp; Value:$_date & " " & $_time ]
+
+Exit Script [ Result: $fm_timestamp ]
