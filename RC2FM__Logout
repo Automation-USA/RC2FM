@@ -9,49 +9,49 @@ Set Variable [ $isModern; Value:Get ( ScriptResult ) ]
 
 #Use cURL method for FM versions 16+
 If [ $isModern ]
-#Compile authentication url
-Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/logout.php" ]
-Set Variable [ $curl; Value:"-d auth=" & Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & $$rc2fm_session_id ]
-#Remove line breaks
-Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $curl ]
-Set Variable [ $curl; Value:Get ( ScriptResult ) ]
-#Submit Login
-Insert from URL [ RC2FM_GLOBALS::API_Response__Auth; $url; cURL options: $curl ] [ Select; No dialog; Verify SSL Certificates ]
+	#Compile authentication url
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/logout.php" ]
+	Set Variable [ $curl; Value:"-d auth=" & Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & $$rc2fm_session_id ]
+	#Remove line breaks
+	Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $curl ]
+	Set Variable [ $curl; Value:Get ( ScriptResult ) ]
+	#Submit Login
+	Insert from URL [ RC2FM_GLOBALS::API_Response__Auth; $url; cURL options: $curl ] [ Select; No dialog; Verify SSL Certificates ]
 Else
-#Compile logout url
-Set Variable [ $Logout; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/logout.php?auth=" & Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & $$rc2fm_session_id ]
-#Submit Logout request
-Insert from URL [ RC2FM_GLOBALS::API_Response__Auth; $Logout ] [ Select; No dialog; Verify SSL Certificates ]
+	#Compile logout url
+	Set Variable [ $Logout; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/logout.php?auth=" & Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & $$rc2fm_session_id ]
+	#Submit Logout request
+	Insert from URL [ RC2FM_GLOBALS::API_Response__Auth; $Logout ] [ Select; No dialog; Verify SSL Certificates ]
 End If
 #unlock record
 Go to Field [ ] [ Select/perform ]
 
 #process api response
 If [ PatternCount ( RC2FM_GLOBALS::API_Response__Auth ; "{\"success\":98,\"message\":\"You are sucessfully logged out.\"}" ) ]
-Set Variable [ $$account; Value:"" ]
-Set Variable [ $$extension; Value:"" ]
-Set Variable [ $$MainCompanyNumber; Value:"" ]
-Set Variable [ $$CompanyFaxNumber; Value:"" ]
-Set Variable [ $$CompanyNumber; Value:"" ]
-Set Variable [ $$DirectNumber; Value:"" ]
-Set Variable [ $$extensionNumber; Value:"" ]
-Set Variable [ $$admin; Value:"" ]
-#Clean up
-Set Field [ RC2FM_GLOBALS::RingOut_CallerID_Selected; "" ]
-Set Field [ RC2FM_GLOBALS::FaxOut_Utility_Container; "" ]
-Set Field [ RC2FM_GLOBALS::API_Response__RC_Reply; "" ]
-Set Field [ RC2FM_GLOBALS::API_Response__Token_Status; "" ]
-Set Field [ RC2FM_GLOBALS::API_Functions_Utility_field; "" ]
-Set Field [ RC2FM_GLOBALS::API_Response__RC_download_log; "" ]
-Set Field [ RC2FM_GLOBALS::MMS_Utility_Container; "" ]
-Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[2]; "" ]
-Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[3]; "" ]
-Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[4]; "" ]
-Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[5]; "" ]
-Set Field [ DEMO_USER_SESSIONS__user_session_id::RC_CallerID_Choices; "" ]
-Exit Script [ Result: True ]
+	Set Variable [ $$account; Value:"" ]
+	Set Variable [ $$extension; Value:"" ]
+	Set Variable [ $$MainCompanyNumber; Value:"" ]
+	Set Variable [ $$CompanyFaxNumber; Value:"" ]
+	Set Variable [ $$CompanyNumber; Value:"" ]
+	Set Variable [ $$DirectNumber; Value:"" ]
+	Set Variable [ $$extensionNumber; Value:"" ]
+	Set Variable [ $$admin; Value:"" ]
+	#Clean up
+	Set Field [ RC2FM_GLOBALS::RingOut_CallerID_Selected; "" ]
+	Set Field [ RC2FM_GLOBALS::FaxOut_Utility_Container; "" ]
+	Set Field [ RC2FM_GLOBALS::API_Response__RC_Reply; "" ]
+	Set Field [ RC2FM_GLOBALS::API_Response__Token_Status; "" ]
+	Set Field [ RC2FM_GLOBALS::API_Functions_Utility_field; "" ]
+	Set Field [ RC2FM_GLOBALS::API_Response__RC_download_log; "" ]
+	Set Field [ RC2FM_GLOBALS::MMS_Utility_Container; "" ]
+	Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[2]; "" ]
+	Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[3]; "" ]
+	Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[4]; "" ]
+	Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[5]; "" ]
+	Set Field [ DEMO_USER_SESSIONS__user_session_id::RC_CallerID_Choices; "" ]
+	Exit Script [ Result: True ]
 Else
-Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: RC2FM_GLOBALS::API_Response__Auth ]
-Exit Script [ Result: False ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: RC2FM_GLOBALS::API_Response__Auth ]
+	Exit Script [ Result: False ]
 End If
 
