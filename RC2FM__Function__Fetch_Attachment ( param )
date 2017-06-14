@@ -1,0 +1,150 @@
+#Name: RC2FM__Function__Fetch_Attachment ( param ) History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 6-1-2017 (renamed script from "...__Fetch_Attachment..." to "...Fetch_Attachment ( param )", added commenting, error handling/reporting) Purpose: Gets a specific message attachment as Base64 by calling RC2FM's "get_attachments.php" endpoint with all required authentication and search criteria parameters. Parameters: $$message_id = RingCentral's message id (contents of field "RC2FM_LOGS::id") $$attachment_type = Type of attachment being requested ( contents of field "RC2FM_LOGS::type", values are "Fax", "VoiceMail", or "MMSAttachment" ) $$attachment_id = RingCentral's mms attachment id (contents of field "RC2FM_LOGS:: attachment_id"). Required when $$attachment_type = "MMSAttachment". $$extension = RingCentral user id (obtained from "RC2FM_Login" during session initiation) $$account = RingCentral account id (obtained from "RC2FM_Login" during session initiation) $$rc2fm_session_id = environment parameters (obtained from "RC2FM_Subscript_Build_Session_ID") RingCentral account credentials (except password): auth = contents of field "RC2FM_GLOBALS::RC_User_Name" extension = RC2FM_GLOBALS::RC_User_ExtNumber (optional) Important Notes: Requires a relationship path from the current context back to the RingCentral credentials fields $$attachment_id is required when $$attachment_type = "MMSAttachment"
+#renamed (added "param")
+
+
+#Test for script parameters
+If [ IsEmpty ( $$message_id ) or IsEmpty ( $$attachment_type ) ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "Fetch" & If ( not IsEmpty ( $$attachment_type ) ; " " & $$attachment_type ; "" ) & " attachment parameter is missing" ]
+	Exit Script [ Result: 958 ]
+Else If [ $$attachment_type = "MmsAttachment" and IsEmpty ( $$attachment_id ) ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "Fetch MMS attachment parameter is missing" ]
+	Exit Script [ Result: 958 ]
+End If
+
+#Test for live token
+Perform Script [ “RC2FM__Check_Session_Status” ]
+Set Variable [ $tokenStatus; Value:Get ( ScriptResult ) ]
+
+#Process token test response
+If [ $tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) & not IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Login” ]
+	If [ IsEmpty ( $$extension ) ]
+		Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "RingCentral user account and/or password not provided.¶¶RC2FM session not active." ]
+		Exit Script [ Result: "No active session and no user credentials" ]
+	End If
+Else If [ $tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: If ( PatternCount ( RC2FM_GLOBALS::API_Response__Token_Status ; "error" ) ; RC2FM_GLOBALS::API_Response__Token_Status ; "RingCentral user account and/or password not provided.¶¶RC2FM session not active." ) ]
+	Exit Script [ Result: "No active session and no user credentials" ]
+End If
+
+#Test for modern FileMaker version
+Perform Script [ “Subscript__Validate_Client_Version_≥16” ]
+Set Variable [ $isModern; Value:Get ( ScriptResult ) ]
+
+#Proceed with Fetching Attachment
+If [ $$attachment_type = "MmsAttachment" ]
+
+	If [ $isModern ]
+		#Fetch Base64 file
+		Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/get_attachments.php" ]
+		Set Variable [ $curl; Value:"-d auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & "&attachment_id=" & Base64Encode ( $$attachment_id ) & "&message_id=" & Base64Encode ( $$message_id ) ]
+		#Remove line breaks
+		Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $curl ]
+		Set Variable [ $curl; Value:Get ( ScriptResult ) ]
+		Set Error Capture [ On ]
+		Insert from URL [ $Base64_URL; $url; cURL options: $curl ] [ Select; No dialog; Verify SSL Certificates ]
+		If [ Get ( LastError ) ≠ 0 ]
+			Exit Script [ ]
+		End If
+		#trim spaces
+		Set Variable [ $Base64_URL; Value:TrimAll ( $Base64_URL ; 1 ; 3 ) ]
+	Else
+		#Fetch Base64 file
+		Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/get_attachments.php?auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & "&attachment_id=" & Base64Encode ( $$attachment_id ) & "&message_id=" & Base64Encode ( $$message_id ) ]
+		Set Error Capture [ On ]
+		Set Field [ RC2FM_GLOBALS::API_Functions_Utility_field; "" ]
+		Insert from URL [ RC2FM_GLOBALS::API_Functions_Utility_field; $url ] [ Select; No dialog; Verify SSL Certificates ]
+		If [ Get ( LastError ) ≠ 0 ]
+			Exit Script [ ]
+		End If
+		#trim spaces
+		Set Field [ RC2FM_GLOBALS::API_Functions_Utility_field; TrimAll ( RC2FM_GLOBALS::API_Functions_Utility_field ; 1 ; 3 ) ]
+		If [ not IsEmpty ( RC2FM_GLOBALS::API_Functions_Utility_field ) ]
+			#capture Base64 path
+			Set Variable [ $Base64_URL; Value:RC2FM_GLOBALS::API_Functions_Utility_field ]
+			Set Field [ RC2FM_GLOBALS::API_Functions_Utility_field; "" ]
+		End If
+	End If
+
+Else
+
+	If [ $isModern ]
+		#Fetch Base64 file
+		Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/get_attachments.php" ]
+		Set Variable [ $curl; Value:"-d auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & "&attachment_id=" & Base64Encode ( $$message_id ) ]
+		#Remove line breaks
+		Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $curl ]
+		Set Variable [ $curl; Value:Get ( ScriptResult ) ]
+		Set Error Capture [ On ]
+		Insert from URL [ $Base64_URL; $url; cURL options: $curl ] [ Select; No dialog; Verify SSL Certificates ]
+		If [ Get ( LastError ) ≠ 0 ]
+			Exit Script [ ]
+		End If
+		#trim spaces
+		Set Variable [ $Base64_URL; Value:TrimAll ( $Base64_URL ; 1 ; 3 ) ]
+
+	Else
+		#Fetch Base64 file
+		Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/get_attachments.php?auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & "&attachment_id=" & Base64Encode ( $$message_id ) ]
+		Set Error Capture [ On ]
+		Insert from URL [ RC2FM_LOGS::attachmenturl; $url ] [ Select; No dialog ]
+		If [ Get ( LastError ) ≠ 0 ]
+			Exit Script [ ]
+		End If
+		#trim spaces
+		Set Field [ RC2FM_LOGS::attachmenturl; TrimAll ( RC2FM_LOGS::attachmenturl ; 1 ; 3 ) ]
+		If [ not IsEmpty ( RC2FM_LOGS::attachmenturl ) and IsEmpty ( RC2FM_ATTACHMENTS::rawBase64 ) ]
+			#capture Base64 path
+			Set Variable [ $Base64_URL; Value:GetField ( $$messageLogTo & "attachmenturl" ) ]
+		End If
+	End If
+
+End If
+
+#Insert Base64 raw data
+Freeze Window
+If [ Get ( LayoutTableName ) & "::" = $$messageLogTO ]
+	Insert from URL [ RC2FM_ATTACHMENTS::rawBase64; $Base64_URL ] [ Select; No dialog; Verify SSL Certificates ]
+	Go to Field [ ] [ Select/perform ]
+	Set Variable [ $log_id; Value:GetField ( $$messageLogTO & "_kpn_log_id" ) ]
+Else
+	Go to Layout [ $$messageLogLayout ]
+	Enter Find Mode [ ]
+	Set Field By Name [ $$messageLogTO & "id"; "==" & $$message_id ]
+	If [ $$attachment_type = "MmsAttachment" ]
+		Set Field By Name [ $$messageLogTO & "attachment_id"; "==" & $$attachment_id ]
+	End If
+	Set Error Capture [ On ]
+	Perform Find [ ]
+	If [ Get (FoundCount) > 0 ]
+		Go to Record/Request/Page [ Last ]
+		Insert from URL [ RC2FM_ATTACHMENTS::rawBase64; $Base64_URL ] [ Select; No dialog; Verify SSL Certificates ]
+	End If
+	If [ PatternCount ( RC2FM_ATTACHMENTS::rawBase64 ; "404 Not Found" ) or PatternCount ( RC2FM_ATTACHMENTS::rawBase64 ; "was not found on this server" ) ]
+		Set Field By Name [ RC2FM_ATTACHMENTS::rawBase64; "" ]
+		Set Variable [ $error; Value:404 ]
+		Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "The requested URL was not found on this server. Try downloading again." ]
+	End If
+	Set Variable [ $log_id; Value:GetField ( $$messageLogTO & "_kpn_log_id" ) ]
+	Go to Layout [ original layout ]
+End If
+
+#Decode Base 64 data
+
+#Test if scripts can be executed on Server ( PSoS )
+Perform Script [ “Subscript__Validate_Server_Version_≥13” ]
+Set Variable [ $Hosted_On_Server; Value:Get ( ScriptResult ) ]
+
+If [ IsEmpty ( $error ) ]
+	If [ $Hosted_On_Server = 1 and LeftWords ( Get ( ApplicationVersion ) ; 1 ) ≠ "Server" //not PlatformServer ]
+		Perform Script on Server [ “RC2FM__Operation__Decode_Binary ( param )”; Parameter: $log_id //RC2FM_LOGS::_kpn_log_id ]
+	Else
+		#Execute record creation loop script locally if not possible on server
+		Perform Script [ “RC2FM__Operation__Decode_Binary ( param )”; Parameter: $log_id //RC2FM_LOGS::_kpn_log_id ]
+	End If
+End If
+
+#Clean up
+Set Variable [ $$message_id; Value:"" ]
+Set Variable [ $$attachment_id; Value:"" ]
+Set Variable [ $$attachment_type; Value:"" ]
