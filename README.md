@@ -11,6 +11,6 @@ Windows - (http://www.myfmbutler.com/en/products/clip-manager-express-for-window
 
 To download the compiled demo file in .fmp12 format, visit our online store at https://store.rc2fm.com and click on "Download free demo file".
 
-For more information about RC2FM Connector, visit our landing page at http://www.rc2fm.com 
+For more information about RC2FM Connector, visit our landing page at https://www.rc2fm.com 
 
 For version history and API documentation, "Read the Docs" at https://www.rc2fm.com/docs
