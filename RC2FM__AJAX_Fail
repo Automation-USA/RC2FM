@@ -1,0 +1,5 @@
+#Name: RC2FM__AJAX_Fail History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 5-31-2017 (added commenting, added conditional test to show error dialogs) Purpose: Called by RC2FM servers via FMP URL. Logs API call error responses from RCFM servers when executing API calls via AJAX form post method. Parameters: Error message string Important Notes: Legacy code for FileMaker versions 15 and earlier. Requires FMP URL protocol.
+Set Field [ RC2FM_GLOBALS::API_Response__RC_Reply; "{\"error\":-1,\"message\":" & $response & "}" ]
+If [ $$showDialogs = True ]
+	Perform Script [ “RC2FM__Subscript__Show_Custom_Dialog ( param )”; Parameter: Let ( [ $$Title = "Error" ] ; $response ) ]
+End If

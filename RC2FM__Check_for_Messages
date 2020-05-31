@@ -1,0 +1,45 @@
+#Name: RC2FM__Check_for_Messages History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 5-31-2017 (added commenting, check session status call, and optional branching for new "CallLogPro" endpoint) Purpose: Queries the RC2FM_Logs table for user call/message history and then calls RC2FM's "msg.php" and "calllog.php" (or "calllog_pro.php") endpoints to fetch history for the appropirate date range. Parameters: $$extension (active user's RingCentral extension id) Important Notes: Uses $$extension to query the RC2FM_Logs table for user-related call/message history. If no user history is found, it bootstraps the previous 6 months
+#Test for live token
+Perform Script [ “RC2FM__Check_Session_Status” ]
+Set Variable [ $tokenStatus; Value:Get ( ScriptResult ) ]
+
+#Process response
+If [ $tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) & not IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Login” ]
+	If [ IsEmpty ( $$extension ) ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "Unable to check for messages. RingCentral user account and/or password not provided.¶¶RC2FM session not active." ]
+	Exit Script [ Result: "No active session and no user credentials" ]
+	End If
+Else If [ $tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "Unable to check for messages. RingCentral user account and/or password not provided.¶¶RC2FM session not active." ]
+	Exit Script [ Result: "No active session and no user credentials" ]
+End If
+
+#If user is logged into RingCentral, check for existence of log records in FileMaker log table
+If [ not IsEmpty ( $$extension ) ]
+
+	Perform Script [ “Subscript__Get_Quoted_Field_Name ( param )”; Parameter: $$messageLogTO & "_kan_RC_extension_id" ]
+	Set Variable [ $fieldName; Value:Get ( ScriptResult ) ]
+	Perform Script [ “Subscript__Get_Quoted_Table_Occurrence_Name ( param )”; Parameter: $$messageLogTO & "_kan_RC_extension_id" ]
+	Set Variable [ $TOname; Value:Get ( ScriptResult ) ]
+	Set Variable [ $SQL; Value:ExecuteSQL ( "SELECT " & $fieldName & " FROM " & $TOname & " WHERE " & $fieldName & " = " & $$extension ; ", " ; ¶ ; "" ) ]
+
+	#If less than 2 matching log records are found for the user, a complete history download is initiated (past 6 months)
+	If [ ValueCount ( $SQL ) < 2 ]
+	Perform Script [ “RC2FM__Function__GetMessages_SUBMIT ( param )”; Parameter: Get ( CurrentHostTimestamp ) - 15724800 ]
+	#call appropirate CallLog script based on your use case and RC2FM subscription level
+	Perform Script [ “RC2FM__Function__GetCallLog_SUBMIT ( param )” ]
+	// Perform Script [ “RC2FM__Function__GetCallLogPro_SUBMIT ( param )” ]
+Else
+	#If more than 2 matching log records are found, an incremental download of the past 6 seconds of activity is initiated (assumes a timer running every 7 seconds)
+	Perform Script [ “RC2FM__Utility__Convert_Timestamp_to_UNIX ( param )”; Parameter: Get ( CurrentHostTimestamp ) - 6 ]
+	Set Variable [ $unixTime; Value:Get ( ScriptResult ) ]
+
+		If [ Length ( $unixTime ) > 11 ]
+		Perform Script [ “RC2FM__Function__GetMessages_SUBMIT ( param )”; Parameter: $unixTime ]
+		Perform Script [ “RC2FM__Function__GetCallLog_SUBMIT ( param )”; Parameter: $unixTime ]
+		End If
+
+	End If
+
+End If

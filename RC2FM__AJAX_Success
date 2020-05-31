@@ -1,0 +1,2 @@
+#Name: RC2FM__AJAX_Success History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 5-31-2017 (added commenting) Purpose: Logs API call success responses from RCFM servers when executing API calls via AJAX form post method. Parameters: API response Important Notes: Legacy code for FileMaker versions 15 and earlier. Requires FMP URL protocol.
+Set Field [ RC2FM_GLOBALS::API_Response__RC_Reply; "SUCCESS: " & $response ]

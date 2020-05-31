@@ -1,0 +1,53 @@
+
+#Name: RC2FM__Operation__Create_MessageAttachment_Records ( param ) History: Created by Automation USA - Julio Toledo Created: 5-31-2017 Purpose: Parses parameter passed by parent script "RC2FM__Operation__Create_MessageLog_Records ( param )" into field names and field values and inserts data as new MMS attachment records Parameters: None Important Notes: None
+#Test for script parameter
+If [ IsEmpty ( Get ( ScriptParameter ) ) ]
+	Exit Script [ Result: 958 ]
+End If
+If [ LeftWords ( Get ( ApplicationVersion ) ; 1 ) ≠ "Server" //not PlatformServer ]
+	Freeze Window
+End If
+
+Set Variable [ $mmsArray; Value:Get ( ScriptParameter ) ]
+// Set Variable [ $mmsArray; Value:Substitute ( Get ( ScriptParameter ) ; "=|=" ; ¶ ) ]
+
+Set Variable [ $ArrayCount; Value:ValueCount ( $mmsArray ) ]
+Set Variable [ $LoopCounter; Value:1 ]
+
+Loop
+
+	Set Variable [ $anArray; Value:GetValue ( $mmsArray ; $LoopCounter ) ]
+	Set Variable [ $parsedArray; Value:Substitute ( $anArray ; [ "&attachment_id=" ; "¶attachment_id=" ] ; [ "&attachmenturl=" ; "¶attachmenturl=" ] ; [ "&attachmentType=" ; "¶attachmentType=" ] ; [ "&size=" ; "¶size=" ] ) ]
+	Set Variable [ $ValueCount; Value:ValueCount ( $parsedArray ) ]
+	Set Variable [ $subLoop_Counter; Value:1 ]
+
+	Duplicate Record/Request
+	Set Field By Name [ $$messageLogTO & "subject"; "" ]
+	Set Field By Name [ $$messageLogTO & "type"; "" ]
+
+	Loop
+		Set Variable [ $a_value; Value:GetValue ( $parsedArray ; $subLoop_Counter ) ]
+		If [ ValueCount ( Substitute ( $a_value ; "=" ; ¶ ) ) < 2 ]
+			Set Variable [ $subLoop_Counter; Value:$subLoop_Counter + 1 ]
+		Else If [ $a_value = "¶" or $a_avalue = " ¶" or $a_value = " " or IsEmpty ( $a_value ) ]
+			Set Variable [ $subLoop_Counter; Value:$subLoop_Counter + 1 ]
+		Else
+			Set Variable [ $fieldName; Value:LeftValues ( Substitute ( $a_value ; "=" ; ¶ ) ; 1 ) ]
+			Set Variable [ $fieldValue; Value:RightValues ( Substitute ( $a_value ; "=" ; ¶ ) ; ValueCount ( $a_value - 1 ) ) ]
+			Set Variable [ $fieldName; Value:$$messageLogTO & Substitute ( $fieldName ; ¶ ; "" ) ]
+
+			If [ not IsEmpty ( $fieldValue ) ]
+				Set Field By Name [ $fieldName; Left ( $fieldValue ; Length ( $fieldValue ) - 1 ) ]
+			End If
+
+			Set Variable [ $subLoop_Counter; Value:$subLoop_Counter + 1 ]
+		End If
+
+		Exit Loop If [ $subLoop_Counter > $ValueCount ]
+
+	End Loop
+
+	Set Variable [ $LoopCounter; Value:$LoopCounter + 1 ]
+	Exit Loop If [ $LoopCounter > $ArrayCount ]
+
+End Loop
