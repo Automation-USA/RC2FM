@@ -1,0 +1,83 @@
+#Name: RC2FM__Function__GetMessages_SUBMIT ( param ) History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 6-1-2017 (added commenting, error handling/reporting) Purpose: Gets the user's extension message history by calling RC2FM's "msg.php" endpoint with all required authentication and search criteria parameters. Parameters: $dateFrom = Starting date/time from which to fetch message history (FileMaker timestamp as string, defaults to current host timestamp) $$messageType = Optional parameter to filter request by message type (message type as string, acceptable values are "SMS", "Fax" , "VoiceMail", or null) $$direction = Optional parameter to filter request by message direction (message direction as string, acceptable values are "Inbound", "Outbound", or null) $$readStatus = Optional parameter to filter request by message status (message status filter as string, acceptable values are "Read", "Unread", or null) $$extension = RingCentral user id (obtained from "RC2FM_Login" during session initiation) $$account = RingCentral account id (obtained from "RC2FM_Login" during session initiation) $$rc2fm_session_id = environment parameters (obtained from "RC2FM_Subscript_Build_Session_ID") RingCentral account credentials (except password): auth = contents of field "RC2FM_GLOBALS::RC_User_Name" extension = RC2FM_GLOBALS::RC_User_ExtNumber (optional) Important Notes: Requires a relationship path from the current context back to the RingCentral credentials fields
+#Handle 'dateFrom' parameter
+If [ not IsEmpty ( Get ( ScriptParameter ) ) ]
+	Set Variable [ $dateFrom; Value:Get ( ScriptParameter ) ]
+Else
+	#If 'dateFrom' parameter is not provided, substitute with current timestamp
+	Perform Script [ “RC2FM__Utility__Convert_Timestamp_to_UNIX ( param )”; Parameter: Get ( CurrentHostTimestamp ) ]
+	Set Variable [ $dateFrom; Value:Get ( ScriptResult ) ]
+End If
+
+#Handle optional parameters
+If [ not IsEmpty ( $$messageType ) ]
+	Set Variable [ $messageType; Value:$$messageType /* acceptable values: "SMS" "Fax" "VoiceMail" for all types, leave blank or don't use */ ]
+	Set Variable [ $$messageType; Value:"" ]
+End If
+
+If [ not IsEmpty ( $$direction ) ]
+	Set Variable [ $direction; Value:$$direction /* acceptable values: "Inbound" "Outbound" for all directions, leave blank or don't use */ ]
+	Set Variable [ $$direction; Value:"" ]
+End If
+
+If [ not IsEmpty ( $$readStatus ) ]
+	Set Variable [ $readStatus; Value:$$readStatus /* acceptable values: "Read" "Unread" for all statuses, leave blank or don't use */ ]
+	Set Variable [ $$readStatus; Value:"" ]
+End If
+
+#Test for live token
+Perform Script [ “RC2FM__Check_Session_Status” ]
+Set Variable [ $tokenStatus; Value:Get ( ScriptResult ) ]
+
+#Process token test response
+If [ $tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) & not IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Login” ]
+	If [ IsEmpty ( $$extension ) ]
+		Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "RingCentral user account and/or password not provided.¶¶RC2FM session not active." ]
+		Exit Script [ Result: "No active session and no user credentials" ]
+	End If
+Else If [ $tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "RingCentral user account and/or password not provided.¶¶RC2FM session not active." ]
+	Exit Script [ Result: "No active session and no user credentials" ]
+End If
+
+#Proceed with GetMessages
+
+If [ PatternCount ( $$messageLogTO ; Get ( LayoutTableName ) ) and Get ( TotalRecordCount ) = 0 ]
+	New Record/Request
+End If
+
+#Clear msg.php raw data field (if any)
+If [ not IsEmpty ( RC2FM_GLOBALS::API_Response__RC_download_log ) ]
+	Set Field [ RC2FM_GLOBALS::API_Response__RC_download_log; "" ]
+End If
+
+#Test for modern FileMaker version
+Perform Script [ “Subscript__Validate_Client_Version_≥16” ]
+Set Variable [ $isModern; Value:Get ( ScriptResult ) ]
+
+#Use cURL method for FM versions 16+
+If [ $isModern ]
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/msg.php" ]
+	Set Variable [ $curl; Value:"-d auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & If ( not IsEmpty ( $dateFrom ) ; "&dateFrom=" & Base64Encode ( $dateFrom ) ; "" ) & If ( not IsEmpty ( $messageType ) ; "&message_type=" & Base64Encode ( $messageType ) ; "" ) & If ( not IsEmpty ( $direction ) ; "&direction=" & Base64Encode ( $direction ) ; "" ) & If ( not IsEmpty ( $readStatus ) ; "&read_status=" & Base64Encode ( $readStatus ) ; "" ) //example 'dateFrom' parameter: "2016-06-16T10:48:20.000Z", or simply "2016-06-16" (time defaults to 12 Midnight UTC) //example 'message_type' parameter: "SMS" or "Fax" or "VoiceMail" //example 'direction' parameter: "Inbound" or "Outbound" (not applicable to "VoiceMail") //example 'read_status' parameter: "Read" or "Unread" ]
+	#Remove line breaks
+	Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $curl ]
+	Set Variable [ $curl; Value:Get ( ScriptResult ) ]
+	Set Error Capture [ On ]
+	#Fetch new data and insert into field
+	Insert from URL [ RC2FM_GLOBALS::API_Response__RC_download_log; $url; cURL options: $curl ] [ Select; No dialog; Verify SSL Certificates ]
+	Set Variable [ $errorNum; Value:Get ( LastError ) ]
+	Go to Field [ ] [ Select/perform ]
+Else
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/msg.php?auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & If ( not IsEmpty ( $dateFrom ) ; "&dateFrom=" & Base64Encode ( $dateFrom ) ; "" ) & If ( not IsEmpty ( $messageType ) ; "&message_type=" & Base64Encode ( $messageType ) ; "" ) & If ( not IsEmpty ( $direction ) ; "&direction=" & Base64Encode ( $direction ) ; "" ) & If ( not IsEmpty ( $readStatus ) ; "&read_status=" & Base64Encode ( $readStatus ) ; "" ) //example 'dateFrom' parameter: "2016-06-16T10:48:20.000Z", or simply "2016-06-16" (time defaults to 12 Midnight UTC) //example 'message_type' parameter: "SMS" or "Fax" or "VoiceMail" //example 'direction' parameter: "Inbound" or "Outbound" (not applicable to "VoiceMail") //example 'read_status' parameter: "Read" or "Unread" ]
+	Set Error Capture [ On ]
+	#Fetch new data and insert into field
+	Insert from URL [ RC2FM_GLOBALS::API_Response__RC_download_log; $url ] [ Select; No dialog; Verify SSL Certificates ]
+	Set Variable [ $errorNum; Value:Get ( LastError ) ]
+	Go to Field [ ] [ Select/perform ]
+End If
+
+
+#if insert is successful, call parse URL operations
+If [ $errorNum = 0 ]
+	Perform Script [ “RC2FM__Operation__Parse_MessageLog” ]
+End If

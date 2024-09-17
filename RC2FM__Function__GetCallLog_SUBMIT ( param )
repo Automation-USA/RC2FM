@@ -1,0 +1,56 @@
+#Name: RC2FM__Function__GetCallLog_SUBMIT ( param ) History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 6-1-2017 (renamed script from "...__GetRecordings_..." to "...__GetCallLog_...", added commenting, error handling/reporting) Purpose: Gets the user's extension call history by calling RC2FM's "calllog.php" endpoint with all required authentication and search criteria parameters. Parameters: $dateFrom = Starting date/time from which to fetch call history (FileMaker timestamp as string) $$extension = RingCentral user id (obtained from "RC2FM_Login" during session initiation) $$account = RingCentral account id (obtained from "RC2FM_Login" during session initiation) $$rc2fm_session_id = environment parameters (obtained from "RC2FM_Subscript_Build_Session_ID") RingCentral account credentials (except password): auth = contents of field "RC2FM_GLOBALS::RC_User_Name" extension = RC2FM_GLOBALS::RC_User_ExtNumber (optional) Important Notes: Requires a relationship path from the current context back to the RingCentral credentials fields
+#Test for live token
+Perform Script [ “RC2FM__Check_Session_Status” ]
+Set Variable [ $tokenStatus; Value:Get ( ScriptResult ) ]
+
+#Capture 'dateFrom' parameter
+If [ not IsEmpty ( Get ( ScriptParameter ) ) ]
+	Set Variable [ $dateFrom; Value:Get ( ScriptParameter ) ]
+End If
+
+#Process token test response
+If [ $tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) & not IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Login” ]
+	If [ IsEmpty ( $$extension ) ]
+		Exit Script [ Result: "No active session and no user credentials" ]
+	End If
+Else If [ $tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Exit Script [ Result: "No active session and no user credentials" ]
+End If
+
+#Proceed with GetMessages
+#Clear msg.php raw data field (if any)
+If [ not IsEmpty ( RC2FM_GLOBALS::API_Response__RC_download_log ) ]
+	Set Field [ RC2FM_GLOBALS::API_Response__RC_download_log; "" ]
+End If
+
+#Test for modern FileMaker version
+Perform Script [ “Subscript__Validate_Client_Version_≥16” ]
+Set Variable [ $isModern; Value:Get ( ScriptResult ) ]
+
+// Set Variable [ $dateFrom; Value:"2016-11-11" ]
+#Use cURL method for FM versions 16+
+If [ $isModern ]
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/calllog.php" ]
+	Set Variable [ $curl; Value:"-d auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & "&phone_number=" & Base64Encode ( "all" ) & $$rc2fm_session_id & If ( not IsEmpty ( $dateFrom ) ; "&dateFrom=" & Base64Encode ( $dateFrom ) ; "" ) //example 'dateFrom' parameter: "2016-06-16T10:48:20.000Z" ]
+	#Remove line breaks
+	Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $curl ]
+	Set Variable [ $curl; Value:Get ( ScriptResult ) ]
+	Set Error Capture [ On ]
+	#Fetch new data and insert into field
+	Insert from URL [ RC2FM_GLOBALS::API_Response__RC_download_log; $url; cURL options: $curl ] [ Select; No dialog; Verify SSL Certificates ]
+	Set Variable [ $errorNum; Value:Get ( LastError ) ]
+	Go to Field [ ] [ Select/perform ]
+Else
+#Fetch new data and insert into field
+	Set Error Capture [ On ]
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/calllog.php?auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & "&phone_number=" & Base64Encode ( "all" ) & $$rc2fm_session_id & If ( not IsEmpty ( $dateFrom ) ; "&dateFrom=" & Base64Encode ( $dateFrom ) ; "" ) //example 'dateFrom' parameter: "2016-06-16T10:48:20.000Z" ]
+	Insert from URL [ RC2FM_GLOBALS::API_Response__RC_download_log; $url ] [ Select; No dialog ]
+	Set Variable [ $errorNum; Value:Get ( LastError ) ]
+	Go to Field [ ] [ Select/perform ]
+End If
+
+#if insert is successful, call parse URL operations
+If [ $errorNum = 0 ]
+	Perform Script [ “RC2FM__Operation__Parse_MessageLog” ]
+End If

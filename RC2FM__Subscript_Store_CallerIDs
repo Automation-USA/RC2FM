@@ -1,0 +1,22 @@
+#Name: RC2FM__Subscript_Store_CallerIDs History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 5-31-2017 (removed "PhoneFormat" custom function dependency) Purpose: Subscript called by RC2FM__Login to parse and store user's RingCentral called ID and extension information for use throughout the sesion Parameters: Global field paths and global variables as defined by "RC2FM__Config" and "RC2FM__Utility__Parse_CallerIDs (rawJSON)" scripts Important Notes: None
+
+#Store global variables in field (for value list population)
+If [ not IsEmpty ( $$DirectNumber ) ]
+	Set Field By Name [ $$rc2fm_caller_id_storage; "Direct number " & $$DirectNumber //"Direct number " & PhoneFormat ( $$DirectNumber ; "# (###) ###-####" ) ]
+End If
+If [ not IsEmpty ( $$MainCompanyNumber ) ]
+	Set Field By Name [ $$rc2fm_caller_id_storage; GetField ( $$rc2fm_caller_id_storage ) & ¶ & "Main company number " & $$MainCompanyNumber //GetField ( $$rc2fm_caller_id_storage ) & ¶ & "Main company number " & PhoneFormat ( $$MainCompanyNumber ; "# (###) ###-####" ) ]
+End If
+If [ not IsEmpty ( $$CompanyFaxNumber ) ]
+	Set Field By Name [ $$rc2fm_caller_id_storage; GetField ( $$rc2fm_caller_id_storage ) & ¶ & "Company fax number " & $$CompanyFaxNumber //GetField ( $$rc2fm_caller_id_storage ) & ¶ & "Company fax number " & PhoneFormat ( $$CompanyFaxNumber ; "# (###) ###-####" ) ]
+End If
+If [ not IsEmpty ( $$CompanyNumber ) ]
+	Set Field By Name [ $$rc2fm_caller_id_storage; GetField ( $$rc2fm_caller_id_storage ) & ¶ & "Company number " & $$CompanyNumber //GetField ( $$rc2fm_caller_id_storage ) & ¶ & "Company number " & PhoneFormat ( $$CompanyNumber ; "# (###) ###-####" ) ]
+End If
+
+#set default caller ID (invert this conditional sequence to modify the default)
+If [ not IsEmpty ( $$DirectNumber ) ]
+	Set Field [ RC2FM_GLOBALS::RingOut_CallerID_Selected; "Direct number " & $$DirectNumber //"Direct number " & PhoneFormat ( $$DirectNumber ; "# (###) ###-####" ) ]
+Else If [ not IsEmpty ( $$MainCompanyNumber ) ]
+	Set Field [ RC2FM_GLOBALS::RingOut_CallerID_Selected; "Main company number " & $$MainCompanyNumber //"Main company number " & PhoneFormat ( $$MainCompanyNumber ; "# (###) ###-####" ) ]
+End If

@@ -1,0 +1,15 @@
+#Name: RC2FM__FaxOut_Validate_FileSize ( param ) History: Created by Automation USA - Julio Toledo Created: 7-6-2016 Last Modified: 6-3-2017 (added commenting, error handling/reporting) Purpose: Validates binary attachment file size against RingCentral's maximum Fax payload restrictions. Parameters: File size (number as string) Important Notes: None
+If [ IsEmpty ( Get ( ScriptParameter ) ) ]
+	Exit Script [ Result: 958 ]
+End If
+
+Set Variable [ $fileSize; Value:Get ( ScriptParameter ) ]
+If [ $fileSize > 5 and PatternCount( Get ( ApplicationVersion ) ; "Web" ) and Int ( GetAsNumber ( Get ( ApplicationVersion ) ) ) < 16 //PlatformWeb ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "{\"error\":511,\"message\":" & "FaxOut upload file size limit for WebDirect is 5 KB" & "}" ]
+	Exit Script [ Result: False ]
+Else If [ $fileSize > 20000 //(~20MB) ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "{\"error\":511,\"message\":" & "FaxOut upload file size limit is 20 MB" & "}" ]
+	Exit Script [ Result: False ]
+End If
+
+Exit Script [ Result: True ]

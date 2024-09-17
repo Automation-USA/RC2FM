@@ -1,0 +1,82 @@
+#Name: RC2FM__Function__RingOut_SUBMIT ( params ) History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 6-1-2017 (added commenting, error handling/reporting, test for modern FileMaker version, cURL support) Purpose: Posts outgoing phone call requests against RC2FM's "ringout.php" endpoint with all required authentication and payload parameters. Parameters: $$callTo = callee's phone number (call desintation phone number, E164 number as string) $$callFrom = caller's phone number (device where call will be picked up from, E164 number as string) $$callerID = one of the valid caller id phone numbers for the RingCentral user (obtained during "RC2FM_Login")† $$extension = RingCentral user id (obtained from "RC2FM_Login" during session initiation) $$account = RingCentral account id (obtained from "RC2FM_Login" during session initiation) $$rc2fm_session_id = environment parameters (obtained from "RC2FM_Subscript_Build_Session_ID") RingCentral account credentials (except password): auth = contents of field "RC2FM_GLOBALS::RC_User_Name" extension = RC2FM_GLOBALS::RC_User_ExtNumber (optional) Important Notes: Requires a relationship path from the current context back to the RingCentral credentials fields † $$callerID parameter is currently disabled due to a RingCentral issue with setting the caller id via REST APIs
+Allow User Abort [ Off ]
+#Test for global variables
+If [ IsEmpty ( $$callTo ) or IsEmpty ( $$callFrom ) or IsEmpty ( $$callerID ) ]
+	If [ $$showDialogs = True ]
+		Perform Script [ “RC2FM__Subscript__Show_Custom_Dialog ( param )”; Parameter: Let ( [ $$Title = "Error" ] ; "Missing \"call from\" parameters. Check RingCentral credentials and try again.") ]
+	End If
+	Exit Script [ Result: 958 ]
+End If
+
+#Test for live token
+Perform Script [ “RC2FM__Check_Session_Status” ]
+Set Variable [ $tokenStatus; Value:Get ( ScriptResult ) ]
+
+#Process token test response
+If [ $tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) & not IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Login” ]
+	If [ IsEmpty ( $$extension ) ]
+		If [ $$showDialogs = True ]
+		Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "No active session and no RingCentral user credentials were provided." ]
+		End If
+	Exit Script [ Result: "No active session and no user credentials" ]
+	End If
+Else If [ $tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	If [ $$showDialogs = True ]
+		Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "No active session and no RingCentral user credentials were provided." ]
+	End If
+	Exit Script [ Result: "No active session and no user credentials" ]
+End If
+
+#Proceed with RingOut
+// Set Variable [ $$callerID; Value:If ( IsEmpty ( $$DirectNumber) ; $$MainCompanyNumber ; $$DirectNumber ) //$$DirectNumber // ]
+#Initialize API response global field
+Set Field [ RC2FM_GLOBALS::API_Response__RC_Reply; "Loading..." ]
+
+#Initialize session variables
+Perform Script [ “RC2FM__Subscript_Build_Session_ID” ]
+
+#Test for modern FileMaker version
+Perform Script [ “Subscript__Validate_Client_Version_≥16” ]
+Set Variable [ $isModern; Value:Get ( ScriptResult ) ]
+
+#Use cURL method for FM versions 16+
+If [ $isModern ]
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/api/v1.php" ]
+	#Set cURL options
+	Set Variable [ $cURL_options; Value:"-d action=ringout&auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & "&to=" & Base64Encode ( $$callTo ) & "&from=" & Base64Encode ( $$callFrom ) & "&caller_id=" & Base64Encode ( $$callerID ) ]
+	#Remove line breaks
+	Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $cURL_options ]
+	Set Variable [ $cURL_options; Value:Get ( ScriptResult ) ]
+	#POST
+	Insert from URL [ RC2FM_GLOBALS::API_Response__RC_Reply; $url; cURL options: $cURL_options ] [ Select; No dialog; Verify SSL Certificates ]
+	#Clean up response
+	Set Field [ RC2FM_GLOBALS::API_Response__RC_Reply; Substitute ( RC2FM_GLOBALS::API_Response__RC_Reply ; "\/" ; "/" ) ]
+	Go to Field [ ] [ Select/perform ]
+Else If [ PatternCount( Get ( ApplicationVersion ) ; "Web" ) //legacy PlatformWeb ]
+	#Use Insert from URL method on WebDirect platform (all previous versions)
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/api/v1.php?action=ringout&auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & "&to=" & Base64Encode ( $$callTo ) & "&from=" & Base64Encode ( $$callFrom ) & "&caller_id=" //& Base64Encode ( $$callerID ) ]
+	Insert from URL [ RC2FM_GLOBALS::API_Response__RC_Reply; $url ] [ Select; No dialog; Verify SSL Certificates ]
+	Go to Field [ ] [ Select/perform ]
+Else
+	#Use AJAX form method in WebViewer (all previous FM versions)
+
+	#Capture host IP for AJAX response
+	Set Variable [ $FileHost; Value:Case ( Get ( HostIPAddress ) = "" ; "$"; // File is local Get ( HostIPAddress ) ) ]
+
+	#Substitute variables in AJAX template
+	Set Variable [ $url; Value:Let ( [ $html = Substitute ( RC2FM_SETTINGS::RC_HtmlAjaxTemplate; ["{{URL}}"; RC2FM_SETTINGS::RC2FM_BaseURL & "/api/v1.php?action=ringout&auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id]; ["{{FORM_DATA}}"; "to=" & Base64Encode ( $$callTo ) & "&from=" & Base64Encode ( $$callFrom ) & "&caller_id=" ]; ["{{FILE_HOST}}"; $FileHost ]; ["{{FILE_NAME}}"; Get( FileName )] ) ]; "data:text/html," & $html ) ]
+
+	#Submit to WebViewer
+	Set Web Viewer [ Object Name: "ajax_web_viewer"; URL: $url ]
+	Go to Field [ ] [ Select/perform ]
+End If
+
+If [ PatternCount ( RC2FM_GLOBALS::API_Response__RC_Reply ; "error" ) ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: RC2FM_GLOBALS::API_Response__RC_Reply ]
+End If
+
+#Clean up
+Set Variable [ $$callTo; Value:"" ]
+Set Variable [ $$callFrom; Value:"" ]
+Set Variable [ $$callerID; Value:"" ]

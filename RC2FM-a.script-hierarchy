@@ -1,0 +1,88 @@
+
+RC2FM Modules [REQUIRED]
+-
+RC2FM Session Control
+RC2FM__Config
+RC2FM__Login
+RC2FM__Logout
+-
+RC2FM__Check_Session_Status
+RC2FM__Subscript_Store_CallerIDs
+RC2FM__Subscript_Build_Session_ID
+RC2FM__Subscript__Show_Custom_Dialog ( param )
+-
+RC2FM__Start_Timer
+RC2FM__Check_for_Messages
+RC2FM__Stop_Timer
+-
+-
+RC2FM Protocol Controls
+RC2FM__AJAX_Fail
+RC2FM__AJAX_Success
+RC2FM__Fail [Internal] ( param )
+RC2FM__MMS_Validate_MIME_Type ( param )
+RC2FM__MMS_Validate_FileSizes ( param )
+RC2FM__FaxOut_Validate_MIME_Type ( param )
+RC2FM__FaxOut_Validate_FileSize ( param )
+-
+RC2FM Functions
+-
+FaxOut
+RC2FM__FaxOut ( chooseFile )
+RC2FM__FaxOut ( selectedContainer)
+-
+RC2FM__Subscript__FaxOut_Validate ( param )
+RC2FM__Function__FaxOut_SUBMIT ( params )
+-
+RingOut
+RC2FM__Function__RingOut_SUBMIT ( params )
+-
+SMS [Outbound]
+RC2FM__Subscript__MMS_Validate ( param )
+RC2FM__Function__SMS_SUBMIT ( params )
+RC2FM__Function__MMS_SUBMIT ( params )
+-
+Get Message Logs
+RC2FM__Function__GetMessages_SUBMIT ( param )
+-
+Get Call/Recordings Log
+RC2FM__Function__GetCallLog_SUBMIT ( param )
+RC2FM__Function__GetCallLogPro_SUBMIT ( param )
+-
+Get Attachments/Recordings
+RC2FM__Function__Fetch_Attachment ( param )
+RC2FM__Function__Fetch_Recording
+-
+Update 'Read' Status
+RC2FM__Update_ReadStatus
+-
+RC2FM Data Operations
+-
+Call/Message/Recordings Log Operations
+RC2FM__Operation__Parse_MessageLog
+RC2FM__Operation__Create_MessageLog_Records ( param )
+RC2FM__Operation__Create_MessageAttachment_Records ( param )
+-
+Binary Operations
+RC2FM__Operation__Decode_Binary ( param )
+-
+RC2FM Utility Scripts
+Subscript__Get_Quoted_Field_Name ( param )
+Subscript__Get_Quoted_Table_Occurrence_Name ( param )
+-
+RC2FM__Utility__Cleanup_FileName ( param )
+RC2FM__Utility__Convert_Timestamp_to_UNIX ( param )
+RC2FM__Utility__Convert_UNIX_Timestamp_to_FM ( param )
+RC2FM__Utility__Convert_MIME_Type_to_Extension ( param )
+RC2FM__Utility__Parse_CallerIDs (rawJSON)
+-
+Subscript__Validate_Client_Version_≥16
+Subscript__Validate_Server_Version_≥13
+-
+Subscript__Numbers_Only ( param )
+Subscript__phpUnserialize ( param )
+Subscript__Remove_LineBreaks ( param )
+-
+Subscritpt__Set_Field_By_Name ( fieldname, fieldvalues )
+Subscript__Loop_Clear_Fields_By_Name ( fieldnamesList )
+Subscript__Clear_Field_By_Name_and_Refresh_Window ( fieldname )

@@ -1,0 +1,9 @@
+#Name: Subscript__Validate_Client_Version_≥16 History: Created by Automation USA - Julio Toledo Created: 5-29-2017 Last Modified: 5-29-2017 Purpose: Validates that FileMaker client is version 16 or higher Parameters: None Important Notes: None
+
+Set Variable [ $VersionNumber; Value:Int ( Get ( ApplicationVersion ) ) ]
+
+If [ $VersionNumber ≥ 16 ]
+	Exit Script [ Result: True ]
+Else
+	Exit Script [ Result: False ]
+End If

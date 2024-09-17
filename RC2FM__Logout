@@ -1,0 +1,57 @@
+#Name: RC2FM__Logout History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 5-31-2017 (added error handling/reporting, additional global field clearing) Purpose: Terminates API session (discards token) by calling RC2FM's "logout.php" endpoint. Discards all session global variables and clears all session global fields. Parameters: RingCentral account credentials (except password) auth = contents of field "RC2FM_GLOBALS::RC_User_Name" (User's RingCentral direct number, or company's main RingCentral phone number) extension = contents of field "RC2FM_GLOBALS::RC_User_ExtNumber" (User's RingCentral Extension Number, optional) Important Notes: As with RingCentral authentication, the user name may be supplied to our RC2FM server in either of two formats: User name= Main company phone number + user's extension number; or ​User name= direct phone number (no extension number requried) In either case, the correct phone number format should be E164 (numeric only). Main number + extension authentication example: User name: 13055551212 Extension: 123 Direct Number (DID) authentication example: User name: 17865512008 Extension: [leave blank]
+
+#Gather required environment parameters
+Perform Script [ “RC2FM__Subscript_Build_Session_ID” ]
+
+#Test for modern FileMaker version
+Perform Script [ “Subscript__Validate_Client_Version_≥16” ]
+Set Variable [ $isModern; Value:Get ( ScriptResult ) ]
+
+#Use cURL method for FM versions 16+
+If [ $isModern ]
+	#Compile authentication url
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/logout.php" ]
+	Set Variable [ $curl; Value:"-d auth=" & Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & $$rc2fm_session_id ]
+	#Remove line breaks
+	Perform Script [ “Subscript__Remove_LineBreaks ( param )”; Parameter: $curl ]
+	Set Variable [ $curl; Value:Get ( ScriptResult ) ]
+	#Submit Login
+	Insert from URL [ RC2FM_GLOBALS::API_Response__Auth; $url; cURL options: $curl ] [ Select; No dialog; Verify SSL Certificates ]
+Else
+	#Compile logout url
+	Set Variable [ $Logout; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/logout.php?auth=" & Base64Encode ( Filter ( RC2FM_GLOBALS::RC_User_Name ; "0123456789+" ) ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & $$rc2fm_session_id ]
+	#Submit Logout request
+	Insert from URL [ RC2FM_GLOBALS::API_Response__Auth; $Logout ] [ Select; No dialog; Verify SSL Certificates ]
+End If
+#unlock record
+Go to Field [ ] [ Select/perform ]
+
+#process api response
+If [ PatternCount ( RC2FM_GLOBALS::API_Response__Auth ; "{\"success\":98,\"message\":\"You are sucessfully logged out.\"}" ) ]
+	Set Variable [ $$account; Value:"" ]
+	Set Variable [ $$extension; Value:"" ]
+	Set Variable [ $$MainCompanyNumber; Value:"" ]
+	Set Variable [ $$CompanyFaxNumber; Value:"" ]
+	Set Variable [ $$CompanyNumber; Value:"" ]
+	Set Variable [ $$DirectNumber; Value:"" ]
+	Set Variable [ $$extensionNumber; Value:"" ]
+	Set Variable [ $$admin; Value:"" ]
+	#Clean up
+	Set Field [ RC2FM_GLOBALS::RingOut_CallerID_Selected; "" ]
+	Set Field [ RC2FM_GLOBALS::FaxOut_Utility_Container; "" ]
+	Set Field [ RC2FM_GLOBALS::API_Response__RC_Reply; "" ]
+	Set Field [ RC2FM_GLOBALS::API_Response__Token_Status; "" ]
+	Set Field [ RC2FM_GLOBALS::API_Functions_Utility_field; "" ]
+	Set Field [ RC2FM_GLOBALS::API_Response__RC_download_log; "" ]
+	Set Field [ RC2FM_GLOBALS::MMS_Utility_Container; "" ]
+	Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[2]; "" ]
+	Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[3]; "" ]
+	Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[4]; "" ]
+	Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[5]; "" ]
+	Set Field [ DEMO_USER_SESSIONS__user_session_id::RC_CallerID_Choices; "" ]
+	Exit Script [ Result: True ]
+Else
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: RC2FM_GLOBALS::API_Response__Auth ]
+	Exit Script [ Result: False ]
+End If
+

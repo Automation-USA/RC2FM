@@ -1,0 +1,128 @@
+#Name: RC2FM__Function__MMS_SUBMIT ( params ) History: Created by Automation USA - Julio Toledo Created: 4-30-2017 Last Modified: 6-1-2017 (added commenting, error handling/reporting, test for modern FileMaker version, cURL support) Purpose: Posts outgoing MMS requests against RC2FM's "sms.php" endpoint with all required authentication and payload parameters. Parameters: $$DirectNumber = sender's phone number (obtained from "RC2FM_Login" during session initiation) $$smsTo = destination phone number (E164 number as string) $$message = text message (string) $$extension = RingCentral user id (obtained from "RC2FM_Login" during session initiation) $$account = RingCentral account id (obtained from "RC2FM_Login" during session initiation) $$rc2fm_session_id = environment parameters (obtained from "RC2FM_Subscript_Build_Session_ID") RingCentral account credentials (except password): auth = contents of field "RC2FM_GLOBALS::RC_User_Name" extension = RC2FM_GLOBALS::RC_User_ExtNumber (optional) Attachment data: Contents of repetition 1 from global containter field "RC2FM_GLOBALS::MMS_Utility_Container" Contents of repetition 2 from global containter field "RC2FM_GLOBALS::MMS_Utility_Container" Contents of repetition 3 from global containter field "RC2FM_GLOBALS::MMS_Utility_Container" Contents of repetition 4 from global containter field "RC2FM_GLOBALS::MMS_Utility_Container" Contents of repetition 5 from global containter field "RC2FM_GLOBALS::MMS_Utility_Container" Important Notes: - MMS is not supported on WebDirect for legacy FileMaker (versions 15 and earlier). Only the text message portion of the message will be preserved - RC2FM supports a maximum of five (5) attachments per MMS message - RingCentral total MMS attachments payload (sum of all 5 attachments) is currently limited to 1.5 Megabytes - RingCentral MMS only supports certain attachmet MIME file types
+Allow User Abort [ Off ]
+#Test for global variables
+If [ IsEmpty ( $$smsTo ) or IsEmpty ( $$message ) ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "An SMS/MMS parameter is missing" ]
+	Exit Script [ Result: 958 ]
+End If
+
+#Filter out non E164 characters
+Set Variable [ $$smsTo; Value:Filter ( $$smsTo ; "0123456789+" ) ]
+
+#Test for live token
+Perform Script [ “RC2FM__Check_Session_Status” ]
+Set Variable [ $tokenStatus; Value:Get ( ScriptResult ) ]
+
+#Process token test response
+If [ $tokenStatus = 0 and not IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) & not IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Login” ]
+	If [ IsEmpty ( $$extension ) ]
+		Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "RingCentral user account and/or password not provided.¶¶RC2FM session not active." ]
+		Exit Script [ Result: "No active session and no user credentials" ]
+	End If
+Else If [ $tokenStatus = 0 and IsEmpty ( RC2FM_GLOBALS::RC_User_Name ) or IsEmpty ( RC2FM_GLOBALS::RC_User_Password ) ]
+	Perform Script [ “RC2FM__Fail [Internal] ( param )”; Parameter: "RingCentral user account and/or password not provided.¶¶RC2FM session not active." ]
+	Exit Script [ Result: "No active session and no user credentials" ]
+End If
+
+#Proceed with SMS
+Set Variable [ $$smsFrom; Value:$$DirectNumber //If ( $$admin = True or IsEmpty ( $$DirectNumber ); $$MainCompanyNumber ; $$DirectNumber ) //If ( IsEmpty ( $$DirectNumber) ; Settings::RC_Username ; $$DirectNumber ) ]
+
+#Test for modern FileMaker version
+Perform Script [ “Subscript__Validate_Client_Version_≥16” ]
+Set Variable [ $isModern; Value:Get ( ScriptResult ) ]
+
+#Capture attachments
+If [ not $isModern and PatternCount( Get ( ApplicationVersion ) ; "Web" ) //legacy PlatformWeb ]
+	#exclude attachments if legacy WebDirect (mms not supported by RC2FM on legacy WebDirect)
+Else
+	#Validate file extensions against supported MIME types
+	Set Variable [ $LoopCounter; Value:1 ]
+	Set Variable [ $fieldRepetitions; Value:5 ]
+	Loop
+		If [ not IsEmpty ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; $LoopCounter ) ) ]
+			Set Variable [ $fileName; Value:GetContainerAttribute ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; $LoopCounter ) ; "Filename" ) ]
+			Perform Script [ “RC2FM__Subscript__MMS_Validate ( param )” ]
+			Set Variable [ $result; Value:Get ( ScriptResult ) ]
+			If [ $result = False ]
+				Exit Script [ ]
+			End If
+		End If
+		Set Variable [ $LoopCounter; Value:$LoopCounter + 1 ]
+		Exit Loop If [ $LoopCounter > $fieldRepetitions ]
+	End Loop
+
+	#Load attachments into variables
+		If [ not IsEmpty ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 1 ) ) ]
+			Set Variable [ $attachment_content; Value:GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 1 ) ]
+			Set Variable [ $attachment_filename; Value:GetContainerAttribute ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 1 ) ; "Filename" ) ]
+	End If
+
+	If [ not IsEmpty ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 2 ) ) ]
+		Set Variable [ $attachment_content1; Value:GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 2 ) ]
+		Set Variable [ $attachment_filename1; Value:GetContainerAttribute ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 2 ) ; "Filename" ) ]
+	End If
+
+	If [ not IsEmpty ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 3 ) ) ]
+		Set Variable [ $attachment_content2; Value:GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 3 ) ]
+		Set Variable [ $attachment_filename2; Value:GetContainerAttribute ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 3 ) ; "Filename" ) ]
+	End If
+
+	If [ not IsEmpty ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 4 ) ) ]
+		Set Variable [ $attachment_content3; Value:GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 4 ) ]
+		Set Variable [ $attachment_filename3; Value:GetContainerAttribute ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 4 ) ; "Filename" ) ]
+	End If
+
+	If [ not IsEmpty ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 5 ) ) ]
+		Set Variable [ $attachment_content4; Value:GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 5 ) ]
+		Set Variable [ $attachment_filename4; Value:GetContainerAttribute ( GetRepetition ( RC2FM_GLOBALS::MMS_Utility_Container ; 5 ) ; "Filename" ) ]
+	End If
+
+End If
+
+#Initialize session variables
+Perform Script [ “RC2FM__Subscript_Build_Session_ID” ]
+
+#Initialize API response global field
+Set Field [ RC2FM_GLOBALS::API_Response__RC_Reply; "Loading..." ]
+
+#Use cURL method for FM version 16+
+If [ $isModern ]
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/api/v1.php" ]
+	#Set cURL options
+	Set Variable [ $cURL_options; Value:"-X POST -d action=sms&auth=" & Base64EncodeRFC ( 4648 ; RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64EncodeRFC ( 4648 ; RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64EncodeRFC ( 4648 ; $$extension ) & "&account_id=" & Base64EncodeRFC ( 4648 ; $$account ) & $$rc2fm_session_id & "&from=" & Base64EncodeRFC ( 4648 ; $$smsFrom ) & "&to=" & Base64EncodeRFC ( 4648 ; $$smsTo ) & "&text=" & Base64EncodeRFC ( 4648 ; $$message ) & If ( not IsEmpty ( $attachment_content ) ; "&attachment_filename=" & Base64EncodeRFC ( 4648 ; $attachment_filename ) & "&attachment_content=" & Base64EncodeRFC ( 4648 ; $attachment_content ) ; "" ) & If ( not IsEmpty ( $attachment_content1 ) ; "&attachment_filename1=" & Base64EncodeRFC ( 4648 ; $attachment_filename1 ) & "&attachment_content1=" & Base64EncodeRFC ( 4648 ; $attachment_content1 ) ; "" ) & If ( not IsEmpty ( $attachment_content2 ) ; "&attachment_filename2=" & Base64EncodeRFC ( 4648 ; $attachment_filename2 ) & "&attachment_content2=" & Base64EncodeRFC ( 4648 ; $attachment_content2 ) ; "" ) & If ( not IsEmpty ( $attachment_content3 ) ; "&attachment_filename3=" & Base64EncodeRFC ( 4648 ; $attachment_filename3 ) & "&attachment_content3=" & Base64EncodeRFC ( 4648 ; $attachment_content3 ) ; "" ) & If ( not IsEmpty ( $attachment_content4 ) ; "&attachment_filename4=" & Base64EncodeRFC ( 4648 ; $attachment_filename4 ) & "&attachment_content4=" & Base64EncodeRFC ( 4648 ; $attachment_content4 ) ; "" ) ]
+	Insert from URL [ RC2FM_GLOBALS::API_Response__RC_Reply; $url; cURL options: $cURL_options ] [ Select; No dialog; Verify SSL Certificates ]
+	#Clean up response
+	Set Field [ RC2FM_GLOBALS::API_Response__RC_Reply; Substitute ( RC2FM_GLOBALS::API_Response__RC_Reply ; "\/" ; "/" ) ]
+	Go to Field [ ] [ Select/perform ]
+Else If [ PatternCount( Get ( ApplicationVersion ) ; "Web" ) //legacy PlatformWeb ]
+	#Use Insert from URL method and EXCLUDE ATTACHMENTS (mms is not supported by RC2FM on legacy WebDirect platform)
+	Set Variable [ $url; Value:RC2FM_SETTINGS::RC2FM_BaseURL & "/api/v1.php?action=sms&auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id & "&from=" & Base64Encode ( $$smsFrom ) & "&to=" & Base64Encode ( $$smsTo ) & "&text=" & ( Substitute ( Base64Encode ( $$message ); [Char ( "10" ); ""]; [Char ( "13" ); ""]; [Char ( "¶" ); ""] ) ) ]
+	Insert from URL [ RC2FM_GLOBALS::API_Response__RC_Reply; $url ] [ Select; No dialog; Verify SSL Certificates ]
+	Go to Field [ ] [ Select/perform ]
+Else
+	#Use AJAX form method in WebViewer (all previous FM versions)
+
+	#Capture host IP for AJAX response
+	Set Variable [ $FileHost; Value:Case ( Get ( HostIPAddress ) = "" ; "$"; // File is local Get ( HostIPAddress ) ) ]
+
+	#Substitute variables in AJAX template
+	Set Variable [ $url; Value:Let ( [ $html = Substitute ( RC2FM_SETTINGS::RC_HtmlAjaxTemplate; ["{{URL}}"; RC2FM_SETTINGS::RC2FM_BaseURL & "/api/v1.php?action=sms&auth=" & Base64Encode ( RC2FM_GLOBALS::RC_User_Name ) & If ( not IsEmpty ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "&extension=" & Base64Encode ( RC2FM_GLOBALS::RC_User_ExtNumber ) ; "" ) & "&user_id=" & Base64Encode ( $$extension ) & "&account_id=" & Base64Encode ( $$account ) & $$rc2fm_session_id ]; ["{{FORM_DATA}}"; "from=" & Base64Encode ( $$smsFrom ) & "&to=" & Base64Encode ( $$smsTo ) & "&text=" & ( Substitute ( Base64Encode ( $$message ); [Char ( "10" ); ""]; [Char ( "13" ); ""]; [Char ( "¶" ); ""] ) ) & If ( not IsEmpty ( $attachment_content ) ; "&attachment_filename=" & Base64Encode ( $attachment_filename ) & "&attachment_content=" & Substitute ( Base64Encode ( $attachment_content ) ;[Char ( "10" ); ""]; [Char ( "13" ); ""]; [Char ( "¶" ); ""] ) ; "" ) & If ( not IsEmpty ( $attachment_content1 ) ; "&attachment_filename1=" & Base64Encode ( $attachment_filename1 ) & "&attachment_content1=" & Substitute ( Base64Encode ( $attachment_content1 ) ;[Char ( "10" ); ""]; [Char ( "13" ); ""]; [Char ( "¶" ); ""] ) ; "" ) & If ( not IsEmpty ( $attachment_content2 ) ; "&attachment_filename2=" & Base64Encode ( $attachment_filename2 ) & "&attachment_content2=" & Substitute ( Base64Encode ( $attachment_content2 ) ;[Char ( "10" ); ""]; [Char ( "13" ); ""]; [Char ( "¶" ); ""] ) ; "" ) & If ( not IsEmpty ( $attachment_content3 ) ; "&attachment_filename3=" & Base64Encode ( $attachment_filename3 ) & "&attachment_content3=" & Substitute ( Base64Encode ( $attachment_content3 ) ;[Char ( "10" ); ""]; [Char ( "13" ); ""]; [Char ( "¶" ); ""] ) ; "" ) & If ( not IsEmpty ( $attachment_content4 ) ; "&attachment_filename4=" & Base64Encode ( $attachment_filename4 ) & "&attachment_content4=" & Substitute ( Base64Encode ( $attachment_content4 ) ;[Char ( "10" ); ""]; [Char ( "13" ); ""]; [Char ( "¶" ); ""] ) ; "" ) ] ; ["{{FILE_HOST}}"; $FileHost]; ["{{FILE_NAME}}"; Get( FileName )] ) ]; "data:text/html," & $html ) ]
+
+	#Submit to WebViewer
+	Set Web Viewer [ Object Name: "ajax_web_viewer"; URL: $url ]
+	Go to Field [ ] [ Select/perform ]
+End If
+
+#Clean up
+Set Field [ RC2FM_GLOBALS::SMS_Input_Field; "" ]
+Set Field [ RC2FM_GLOBALS::SMS_ToPhone; "" ]
+Set Field [ RC2FM_GLOBALS::MMS_Utility_Container; "" ]
+Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[2]; "" ]
+Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[3]; "" ]
+Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[4]; "" ]
+Set Field [ RC2FM_GLOBALS::MMS_Utility_Container[5]; "" ]
+Set Variable [ $$smsFrom; Value:"" ]
+Set Variable [ $$smsTo; Value:"" ]
+Set Variable [ $$message; Value:"" ]
+

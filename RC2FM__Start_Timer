@@ -1,0 +1,2 @@
+#Name: RC2FM__Start_Timer History: Created by Automation USA - Julio Toledo Created: 7-3-2016 Last Modified: 5-31-2017 (added commenting) Purpose: Installs a timer on the active window to call "RC2FM__Check_for_Messages" every 7 seconds (configurable long polling). "RC2FM__Check_for_Messages" then polls RingCentral for new messesages and phone call records. Parameters: None Important Notes: None
+Install OnTimer Script [ “RC2FM__Check_for_Messages”; Interval: 7 ]
